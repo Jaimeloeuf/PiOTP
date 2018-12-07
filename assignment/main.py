@@ -3,65 +3,48 @@ Description:
 Code for IOTP Assignment
 
 Program flow:
-1.  Wait for button to be pressed.
-2.  Red LED fades with PWM.
-3.  Yellow and Green LED Blinks
-4.  Quick fire buzzer for 2 seconds
-5.  Stop everything after 5 seconds
-
-
-Create a flask server on the pi
-Host it on the lan
-Access the pi direct via IP on browser
-Use the page to toggle LED/Button/Buzzer
-Add an encrypt function to the password
-
-Story:
-Smart control off apliances
-You can off your gas / stove / high wattage device via the 'online portal' for the  server lor
-Then you can also monitor the current status of the system. See if it is actually on/off before u toggle them
+1.  Wait for button to be pressed.  /  Wait for a POST requests at the /api/pressed route
+2.  Call handler function to respond
+    2.1 Red LED fades with PWM.
+    2.2.  Yellow and Green LED Blinks
+    2.3.  Quick fire buzzer for 2 seconds
+    2.4.  Stop everything after 5 seconds
+3.  Echo the JSON data back to the client if handler is called because of the POST request
 """
-
 
 # Dependencies
 from flask import Flask, render_template, abort, request
 from gpiozero import LED, PWMLED, Button
 from time import sleep
-# from signal import pause
 
 # Setup
 app = Flask(__name__)
 led = [LED(27), LED(22)] # Using GPIO pin 16 for LED
 pwmLED = PWMLED(17) # Using GPIO pin 17 for PWM on LED
-buzzer = LED(23) # Using GPIO pin 10 for Buzzer
-btn = Button(3) # Using GPIO pin 3 for Button input
+buzzer = LED(21) # Using GPIO pin 10 for Buzzer
+btn = Button(23) # Using GPIO pin 3 for Button input
 
 # Flask server routes
 @app.route('/', methods=['GET'])
 def index():
     return render_template('./index.html')
 
-@app.route('/api/switch', methods=['POST'])
+@app.route('/api/pressed', methods=['POST'])
 def get_data():
+    handler()
     data = request.get_json()
-    return data
-
-    # abort(404)
+    hello = data['Hi']
+    return hello
 
 # RPI GPIO related
-# Setting event listeners for Button input change
-btn.when_pressed = handler
-btn.when_released = led.off
-
 def handler():
     pwmLED.pulse() # Fade in/out the Red led
-    led[0].blink(0.5, 0.5)
+    led[0].blink(0.3, 0.3)
     led[1].blink(0.5, 0.5)
-
-# pause()
-# Notify user of program end
-print('Program exiting...')
-
+    buzzer.on()
+    sleep(1)
+    buzzer.off()
+btn.when_pressed = handler # Setting event listeners for Button input change
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000, debug=True)
