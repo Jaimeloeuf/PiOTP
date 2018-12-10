@@ -10,11 +10,7 @@ Program flow:
     2.3.  Quick fire buzzer for 2 seconds
     2.4.  Stop everything after 5 seconds
 3.  Echo the JSON data back to the client if handler is called because of the POST request
-
-
-buzz function will be called at every action
 """
-
 # Dependencies
 # Server dependencies
 from flask import Flask, render_template, request, abort, jsonify
@@ -36,8 +32,24 @@ class State:
         self.buzzer = buzzer
         self.btn = btn
 
-    def set_led(self, blink='blink', led=None):
-        if blink == 'blink':
+    def set_led(self, state='blink', led=None):
+        if state == 'on':
+            # Off a specific led in the array of leds if a led is specified by the 'led' variable
+            if led != None:
+                self.leds[led].off()
+            else:
+                # Else off all leds in the array
+                for led in self.leds:
+                    led.off()
+        elif state == 'off'
+            # Off a specific led in the array of leds if a led is specified by the 'led' variable
+            if led != None:
+                self.leds[led].off()
+            else:
+                # Else off all leds in the array
+                for led in self.leds:
+                    led.off()
+        elif state == 'blink':
             # Blink a specific led in the array of leds if a led is specified by the 'led' variable
             if led != None:
                 self.leds[led].blink()
@@ -45,94 +57,88 @@ class State:
                 # Else make all leds in the array blink
                 for led in self.leds:
                     led.blink()
-        elif blink == 'on'
-            # Off a specific led in the array of leds if a led is specified by the 'led' variable
-            if led != None:
-                self.leds[led].off()
-            else:
-                # Else off all leds in the array
-                for led in self.leds:
-                    led.off()
-        elif blink == 'off'
-            # Off a specific led in the array of leds if a led is specified by the 'led' variable
-            if led != None:
-                self.leds[led].off()
-            else:
-                # Else off all leds in the array
-                for led in self.leds:
-                    led.off()
         else:
-            print('Error with method call to LED:\nUnrecognised input arguement for "blink" parameter')
+            print('Error with method call to LED:\nUnrecognised input arguement for "state" parameter')
+            return False # Indicate operation failed
+        return True # Indicate operation succeded
     def fadeLED(self):
         self.pwmLED.pulse()  # Fade in/out the Red led
-    def buzz(self, set=None):
-        # If 'set' is set, use it to manually control state. Else do a auto buzz
-        if set != None:
-            if set == 'on':
+    def buzz(self, state=None):
+        # If 'state' is set, use it to manually control state. Else do a auto buzz
+        if state != None:
+            if state == 'on':
                 self.buzzer.on()
-            elif set == 'off':
+            elif state == 'off':
                 self.buzzer.off()
             else:
-                print('Error with method call to buzz:\nUnrecognised input arguement for "set" parameter')
+                print('Error with method call to buzz:\nUnrecognised input arguement for "state" parameter')
         else:
             self.buzzer.on()
             await sleep(1.5) # Create an async wait timer
             self.buzzer.off()
+    def get(self, state_of='all'):
+        # Construct state based on input arguement and return it to method caller
+        if state_of == 'all':
+            state = {
+                leds: {
+                    green: self.leds.green.is_lit(),
+                    yellow: self.leds.yellow.is_lit(),
+                    red: self.leds.red.is_lit()
+                },
+                pwmLED: {
+
+                },
+                buzzer: state.buzz.is_lit(),
+            }
+        elif state_of == 'leds':
+            state = {
+
+            }
+        return state
 
 
 # 'Global' object that maintains state
 state = State()
 
-# Status object that will be serialized into JSON before being sent back to the client
-# Below is the initial state of the program
-status = {
-    leds: {
-        green: state.leds.green.is_lit(),
-        yellow: state.leds.yellow.is_lit(),
-        red: state.leds.red.is_lit()
-    },
-    pwmLED: {
-
-    },
-    buzzer: state.buzz.is_lit(),
-}
-
-    # Flask server routes
+# Flask server routes
 @app.route('/', methods=['GET'])
 def index():
     return render_template('./index.html')
 
-
 @app.route('/api/get/state', methods=['GET'])
 def current_state():
+    # The returned 'state' object will be serialized into JSON before being sent back to the client
     # return jsonify({ 'State': status })
     return jsonify(status)
 
-
 # led APIs
-@app.route('/api/<color>/get', methods=['GET'])
+@app.route('/api/led/<color>/get', methods=['GET'])
 def index(color):
+    if state.leds[color] != None:
+        return jsonify({ color: state.leds[color] })
 
-
-@app.route('/api/<color>/<state>', methods=['POST'])
+# Smth like react, where I set the state variable. Which is actually just a 'shadow state', which will look at the diff and update the real state
+@app.route('/api/led/<color>/set/<state>', methods=['POST'])
 def set_state(color, state):
-    # Smth like react, where I set the state variable. Which is actually just a 'shadow state', which will look at the diff and update the real state
-    return render_template('./index.html')
+    if state.leds[color] != None:
+        if state.set_led(state=state, led=color)
+            return jsonify({ color: state.leds[color] })
+        else:
+            return 'Invalid request failed'
 
-
-
+# Event handler for button pressed
 def btn_pressed_handler():
     state.set_led()
     await state.buzz()
 
-
-# Route to mimic pressing the button
+# Flask Route to mimic pressing the button
 @app.route('/api/press_btn', methods=['POST'])
 def get_data():
     btn_pressed_handler()
     # Below is a simple echo function
     data = request.get_json()
     return data
+
 
 # leds[1].blink(0.5, 0.5)
 
