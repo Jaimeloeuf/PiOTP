@@ -13,21 +13,39 @@ Program flow:
 """
 
 # Dependencies
-from flask import Flask, render_template, abort, request
+from flask import Flask, render_template, request, abort
 from gpiozero import LED, PWMLED, Button
 from time import sleep
 
 # Setup
 app = Flask(__name__)
-led = [LED(27), LED(22)] # Using GPIO pin 16 for LED
-pwmLED = PWMLED(17) # Using GPIO pin 17 for PWM on LED
-buzzer = LED(21) # Using GPIO pin 10 for Buzzer
-btn = Button(23) # Using GPIO pin 3 for Button input
 
-# Flask server routes
+# Create an object to maintain the LED state
+class State:
+    # Assigning default states
+    led = [LED(27), LED(22)]  # Using GPIO pin 16 for LED
+	pwmLED = PWMLED(17)  # Using GPIO pin 17 for PWM on LED
+	buzzer = LED(21)  # Using GPIO pin 10 for Buzzer
+	btn = Button(23)  # Using GPIO pin 3 for Button input
+	def __init__(self, led, buzz, btn):
+		self.btn = btn
+
+    def blinkLED():
+
+	def fadeLED():
+		# Create a async timer
+		pwmLED.pulse()  # Fade in/out the Red led
+	def buzz():
+		buzzer.on()
+		# Create a async timer
+		buzzer.off()
+
+
+    # Flask server routes
 @app.route('/', methods=['GET'])
 def index():
     return render_template('./index.html')
+
 
 @app.route('/api/pressed', methods=['POST'])
 def get_data():
@@ -37,13 +55,14 @@ def get_data():
     return hello
 
 # RPI GPIO related
+
 def handler():
-    pwmLED.pulse() # Fade in/out the Red led
     led[0].blink(0.3, 0.3)
     led[1].blink(0.5, 0.5)
     buzzer.on()
     sleep(1)
     buzzer.off()
+
 btn.when_pressed = handler # Setting event listeners for Button input change
 
 if __name__ == "__main__":
