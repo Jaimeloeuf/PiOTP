@@ -149,3 +149,28 @@ if __name__ == "__main__":
 
 # leds[1].blink(0.5, 0.5)
 # pwmLED = PWMLED(17)  # Using GPIO pin 17 for PWM on LED
+
+
+# Avail GPIO pins to use: 0 - 27
+# btn use din,
+# pwm use dout
+# led and buzzer both uses dout
+use = ['din', 'dout', 'ain', 'aout', 'led', 'pwm', 'buzzer']
+So the setting thing takes in a name and a pin usage type and the pin number
+def set_pin(name, pin_num, use):
+    # Input Error checking
+    if (pin_num < 0) or (pin_num > 27):
+        print('Error Invalid pin number to assign')
+        exit()
+    
+    if pins.get(name, pin_num): # if the pin has already been used.
+        print('Choosing "N" will cause program to quit')
+        while True:
+            option = input('Set new function for name / pin number used? (Y/N): ')
+            if option == 'y' or option == 'Y':
+                break
+            elif option == 'n' or option == 'N':
+                exit()
+            else:
+                print('Invalid input. Try again')
+    pins.set(name, pin_num, use)
