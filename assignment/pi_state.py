@@ -22,6 +22,24 @@ class State:
         btn.when_pressed = self.btn_pressed_handler # Setting event listeners for Button input change
         self.btn = btn
 
+    def set_new_led(self, name, pin, pwm=False):
+        if (name == None) or (pin == None):
+            print('Error with method call to new_led:\nUnrecognised input arguement for either "name" or "pin" parameter')
+            return False # Return false to indicate operation failed
+        for led in leds:
+            if led.pin == pin
+                print('Error with method call to set_new_led:\nPin "%s" already in use', pin)
+                return False
+        if self.btn.pin == pin:
+            print('Error with method call to set_new_led:\nPin "%s" already in use', pin)
+            return False
+        if self.buzzer.pin == pin:
+            print('Error with method call to set_new_led:\nPin "%s" already in use', pin)
+            return False
+
+        self.leds[name] = PWMLED(pin) if pwm else LED(pin)
+        return True # Indicate operation succeded
+        
     async def set_led(self, state='blink', led=None, onTime=0):
         if state == 'on':
             # Off a specific led in the array of leds if a led is specified by the 'led' variable
@@ -63,6 +81,22 @@ class State:
         # Convert the led into a PWM Led
         # self.leds[led].PWMLED
         # self.pwmLED.pulse()  # Fade in/out the Red led
+
+    def set_buzzer(self, pin):
+        # Can directly call the buzzer variable from the object, but this method provides a safety check
+        if pin == None:
+            print('Error with method call to set_buzzer:\nUnrecognised input arguement for "pin" parameter')
+            return False # Return false to indicate operation failed
+        for led in leds:
+            if led.pin == pin
+                # Disable the LED control thing and change it to buzzer
+                print('Error with method call to set_buzzer:\nPin "%s" already in use', pin)
+                return False
+        if self.btn.pin == pin:
+            print('Pin "%s" now used for ', pin)
+            return False
+        self.buzzer = LED(pin)
+        return True # Indicate operation succeded
 
     async def buzz(self, state=None, onTime=0):
         # If 'state' is set, use it to manually control state. Else do a auto buzz
