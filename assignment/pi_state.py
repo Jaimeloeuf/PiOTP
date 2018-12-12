@@ -27,7 +27,7 @@ class State:
             print('Error with method call to new_led:\nUnrecognised input arguement for either "name" or "pin" parameter')
             return False # Return false to indicate operation failed
         for led in leds:
-            if led.pin == pin
+            if led.pin == pin:
                 print('Error with method call to set_new_led:\nPin "%s" already in use', pin)
                 return False
         if self.btn.pin == pin:
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 # led and buzzer both uses dout
 use = ['din', 'dout', 'ain', 'aout', 'led', 'pwm', 'buzzer']
 So the setting thing takes in a name and a pin usage type and the pin number
-def set_pin(name, pin_num, use):
+def set_pin(pin_num, use, name):
     # Input Error checking
     if (pin_num < 0) or (pin_num > 27):
         print('Error Invalid pin number to assign')
@@ -174,3 +174,11 @@ def set_pin(name, pin_num, use):
             else:
                 print('Invalid input. Try again')
     pins.set(name, pin_num, use)
+
+
+set_pin(22, 'dout', 'led1')
+state('led1', 'on')
+state('led1', 'off')
+state('led1', 'blink')
+
+# Can all the pinout program with the mock set for GPIOZERO_PIN_FACTORY env 
