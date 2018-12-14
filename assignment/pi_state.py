@@ -182,3 +182,37 @@ state('led1', 'off')
 state('led1', 'blink')
 
 # Can all the pinout program with the mock set for GPIOZERO_PIN_FACTORY env 
+
+
+class state:
+	stash = []
+	state = {}
+	# Get current state of GPIO
+	def get(self):
+		return self.state
+	# Stash the current state
+	def stash(self):
+		self.stash.push(self.state)
+		return len(self.stash)
+	# stash.apply
+	# To make stash into a object by itself with functions
+	def apply(self):
+		self.set_state(self.stash.pop())
+		return True # Indicate a OK
+	# Set all the pins at once. Allow some bitmasking?
+	def set_state(self, state):
+		self.state = state
+	def set_pin(self, *args):
+		# each arg is a key value pair
+
+	# Allow some use of decorators where user can just add their own functions to control state
+
+
+
+""" 
+The main difference between my Abstraction API and just using the official gpiozero API is that my one maintains a map of the entire GPIO state. And it allows u to just get the entire state and modifiy multiple things directly. Like the ability to set multiple digital pins high at the same time / off all GPIO
+
+To create a 'disable GPIO' function to so called off everything but rmb the state of the pins before it was offed, in order to conserve power and allow the GPIO state to be reapplied at a later stage.
+Something like using GIT STASH to store current unsaved modified state!
+ """
+
