@@ -17,17 +17,29 @@
 		Homeowners can be alerted when the temperature exceeds a set threshold value.
 		Homeowners can control the air-conditioner remotely via smart devices.
 
-	Example:
-	Homeowners can use a smart device to remotely turn on the air-conditioner
-	(simulated by the fan) if the temperature is relatively high during the day in order to
-	cool up the house before reaching home. -->
-
+		Homeowners can use a smart device to remotely turn on the fan if the temperature is relatively
+		high during the day in order to cool up the house before reaching home. -->
 	<div class="data">
 
 	</div>
 
-	<div class="data">
-
+	<div class="controls">
+		<div id="fan-mode">
+			<pre>
+			<span id="fan-cur-mode">Current mode: {% if mode == 'man' %} Manual {% else %} Auto {% endif %}</span>
+			Set mode:
+				<button onclick="setMode('auto')">Auto</button>
+				<button onclick="setMode('man')">Manual</button>
+			</pre>
+		</div>
+		{% if mode == 'man' %}
+		<div id="fan-man-controls">
+			<span id="fan-cur-state">Current status of fan: {% if state == 'on' %} On {% else %} Off {% endif %}</span>
+			Control the fan by setting it to either on or off.
+				<button onclick="manControl('on')">On</button>
+				<button onclick="manControl('off')">Off</button>
+		</div>
+		{% endif %}
 	</div>
 
 </body>
