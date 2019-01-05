@@ -41,9 +41,13 @@ def login():
     if 'Authorization' in request.headers:
         redirect(url_for('home')) # If user already logged in with valid JWT, then redirect to home page
 
+    credentials = request.form
+    for key, val in credentials.items():
+        if key == 'username':
+            usr = val
+        elif key == 'password':
+            passwd = val
 
-    usr = request.authorization.username
-    passwd = request.authorization.password
     # Call DB to check password
     # If matches, create a JWT for the user
     checkPasswd()
