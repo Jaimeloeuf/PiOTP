@@ -16,6 +16,7 @@ POST:
 from flask import Flask, render_template, redirect, url_for, request, abort, jsonify
 # To get environmental variables avail to the process
 from os import environ
+from pi_controller import buzzer
 
 # 'Global' object for Flask server
 app = Flask(__name__)

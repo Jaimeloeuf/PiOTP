@@ -17,6 +17,9 @@ Something like using GIT STASH to store current unsaved modified state!
 
 When user set a pin or make a change to the state, update the physical state and record the change into the state object.
 The state will then store 27 Pin objects
+
+
+add in the ability to set pins with ascii txt. 0,1,0-1,off
  """
 
 # leds[1].blink(0.5, 0.5)
