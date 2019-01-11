@@ -1,4 +1,5 @@
 from mqtt import pub, sub, set_broker, set_topic
+from pi_controller import getAirconController
 
 # Set publisher topic
 set_topic("JJ/is", 'p')
@@ -17,7 +18,11 @@ def parse_payload(payload="kgh"):
 	properties = payload.split(';')
 	# Loop through each key value pair
 	for prop in properties:
+		# Split each property into a list with a key and value
 		prop = prop.split('=')
+		# Remove white spaces
+		for val in prop:
+			val = val.strip()
 
 def set_stuff(prop):
 	# Get the key value pair out of the list
@@ -25,13 +30,10 @@ def set_stuff(prop):
 	val = prop[1]
 	# If the key is a valid key
 
-from pi_controller import getAirconController
-
-ac = getAirconController()
 
 def set_state(set_this, to_this):
 	if set_this == None or to_this == None:
 		return False
 	elif set_this == 'mode':
-		if to_this == 'auto':
-			ac.on()
+		ac.set_mode()
+

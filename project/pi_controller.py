@@ -13,50 +13,21 @@ from asyncio import sleep
 # self.btn = btn
 
 """
-1. Create and initializa a buzzer:
-    buzzer = getBuzzer()
-
-2. On buzzer
-    buzzer.on()
-
-3. Off buzzer
-    buzzer.off()
-4. On buzzer for a set time asynchrounously.
-    buzzer.on(1000)
+1. Create and initializa a ac controller:
+    ac = getAirconController()
+2. On ac
+    ac.on()
+3. Off ac
+    ac.off()
+4. On ac for a set time asynchrounously.
+    ac.on(1000)
 """
-
-
-class getBuzzerController:
-    # The constructor calls set_pin object method to set pin.
-    def __init__(self):
-        # self.set_pin(pin)  # Call object method to set pin
-		pass
-
-    # Method to set pin to be connected to the buzzer other than the default one.
-    # GPIO pin 22 will be used for Buzzer by default
-    def set_pin(self, pin=22):
-        # Create a digital output controller with the pin arguement
-        self.buzzer = LED(pin)
-
-    # Method to on the buzzer, assuming that the buzzer is active high output.
-    def on(self, time_on=0):
-        # On the buzzer
-        self.buzzer.on()
-        # If an on time is specified, wait asynchronously and off the buzzer
-        if time_on:
-            await sleep(time_on)  # Create an async wait timer
-            self.buzzer.off()
-
-    # Wrapper method over the buzzer off function.
-    def off(self):
-        self.buzzer.off()
 
 
 class getAirconController:
     # The constructor calls set_pin object method to set pin.
     def __init__(self):
-        # self.set_pin(pin)  # Call object method to set pin
-		pass
+        self.set_pin()  # Call object method to set default pin
 
     # Method to set pin to be connected to the buzzer other than the default one.
     # GPIO pin 27 will be used for Aircon 'relay' by default
@@ -76,26 +47,38 @@ class getAirconController:
     # Wrapper method over the aircon off function.
     def off(self):
         self.aircon.off()
-	
-	def set_mode(self, mode):
-		if mode == 'auto':
-			self.auto('start')
-		elif mode == 'man':
-			self.auto('stop')
 
-	def auto(state):
-		# Start and stop the loop based on the state?
-		
-		while True:
-			if temp > threshold:
-				self.off()
-			else:
-				self.on(60 * 5) # Should I put the delay here instead? To test this concept
-			# Create async timed loop to control aircon in the background
-			await sleep(60 * 5) # Wait for 5 mins
+    def set_mode(self, mode):
+        if mode == 'auto':
+            self.auto('start')
+        elif mode == 'man':
+            self.auto('stop')
+        else:
+            return False  # Return false to indicate error and operation failure
+
+    def auto(state):
+        # Start and stop the loop based on the state?
+
+        while True:
+            if temp > threshold:
+                self.off()
+            else:
+                # Should I put the delay here instead? To test this concept
+                self.on(60 * 5)
+            # Create async timed loop to control aircon in the background
+            await sleep(60 * 5)  # Wait for 5 mins
 
     def state(self):
         self.aircon.state()
+
+
+# Create a function to wrap this inside the state
+ac = getAirconController()
+
+
+def getAC():
+    # Function to return the global variable that stores the reference to the ac controller
+    return ac
 
 
 # Error checking code to prevent running this module as it is.

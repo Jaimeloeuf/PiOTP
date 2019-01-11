@@ -27,3 +27,10 @@ def new_Msg(client, userdata, message):
 
 def sub():
 	subscribe.callback(new_Msg, topic, hostname=broker)
+
+""" Below is code to subscribe to multiple topics """
+# topics = ['#']
+# m = subscribe.simple(topics, hostname="iot.eclipse.org", retained=False, msg_count=2)
+# for a in m:
+#     print(a.topic)
+#     print(a.payload)
