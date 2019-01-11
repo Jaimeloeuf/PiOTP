@@ -28,8 +28,9 @@ from asyncio import sleep
 
 class getBuzzerController:
     # The constructor calls set_pin object method to set pin.
-    def __init__(self, pin):
-        self.set_pin(pin)  # Call object method to set pin
+    def __init__(self):
+        # self.set_pin(pin)  # Call object method to set pin
+		pass
 
     # Method to set pin to be connected to the buzzer other than the default one.
     # GPIO pin 22 will be used for Buzzer by default
@@ -53,8 +54,9 @@ class getBuzzerController:
 
 class getAirconController:
     # The constructor calls set_pin object method to set pin.
-    def __init__(self, pin):
-        self.set_pin(pin)  # Call object method to set pin
+    def __init__(self):
+        # self.set_pin(pin)  # Call object method to set pin
+		pass
 
     # Method to set pin to be connected to the buzzer other than the default one.
     # GPIO pin 27 will be used for Aircon 'relay' by default
@@ -74,6 +76,23 @@ class getAirconController:
     # Wrapper method over the aircon off function.
     def off(self):
         self.aircon.off()
+	
+	def set_mode(self, mode):
+		if mode == 'auto':
+			self.auto('start')
+		elif mode == 'man':
+			self.auto('stop')
+
+	def auto(state):
+		# Start and stop the loop based on the state?
+		
+		while True:
+			if temp > threshold:
+				self.off()
+			else:
+				self.on(60 * 5) # Should I put the delay here instead? To test this concept
+			# Create async timed loop to control aircon in the background
+			await sleep(60 * 5) # Wait for 5 mins
 
     def state(self):
         self.aircon.state()
