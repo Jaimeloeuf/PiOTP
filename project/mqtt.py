@@ -1,40 +1,66 @@
-import time
-import paho.mqtt.client as mqtt
+from paho.mqtt.client import Client
 
-broker = "m2m.eclipse.org"
-port = 1833
-topic = "tp/eng/iotp_lab/pc_01"
+# Global variable that stores the topic name
+topic = "tp/eng/iotp/jj"
 
 
-def create_client():
-	return mqtt.Client()
-
-def connect(client, broker, port=1833)
-    client.connect(mqtt_broker, port)
-    print("--connected to broker")
+def on_connect(mqttc, obj, flags, rc):
+    print("rc: " + str(rc))
 
 
-def publish(client, topic, msg):
-	try:
-        client.publish(topic, msg)
-    except:
-        print("--error publishing!")
-		return Error
-    else:
-        client.disconnect()
-        print("--disconnected from broker")
-
-def onMsg(msg):
-	print(msg)
-
-def sub(client, broker, topic, qos=2, port=1833):
-	client.on_message = onMsg
+def on_message(mqttc, obj, msg):
+    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
 
+def onMsg(payload):
+    print(payload)
+    if payload == 'mode: auto':
+        pass
+    if payload == 'mode: com':
+        pass
+    if payload == 'mode: man':
+        pass
+    if payload == 'mode: off':
+        pass
+    if payload == 'ac: on':
+        pass
+    if payload == 'ac: off':
+        pass
 
 
-client = create_client()
-print("\nCreated client object at " + time.strftime("%H:%M:%S"))
-connect(client, broker, port)
-msg = "Hi"
-publish(client, topic, msg)
+def on_publish(mqttc, obj, mid):
+    print("mid: " + str(mid))
+    pass
+
+
+def on_subscribe(mqttc, obj, mid, granted_qos):
+    print("Subscribed: " + str(mid) + " " + str(granted_qos))
+
+
+def on_log(mqttc, obj, level, string):
+    print(string)
+
+
+# Create a new MQTT client
+# If you want to use a specific client id, use mqttc = mqtt.Client("client-id")
+# note that the client id must be unique on the broker
+mqttc = Client()
+# print("\nCreated client object at " + time.strftime("%H:%M:%S"))
+# Set all the event handlers and call backs
+mqttc.on_message = on_message
+mqttc.on_connect = on_connect
+mqttc.on_publish = on_publish
+mqttc.on_subscribe = on_subscribe
+# Connect to the broker and start the network loop
+mqttc.connect("m2m.eclipse.org")
+mqttc.loop_start()
+
+payload = "gsus"
+# Publish the payload and wait for it to be published
+
+
+def pub(payload):
+    mqttc.publish(topic, payload, qos=2).wait_for_publish()
+
+
+pub(payload)
