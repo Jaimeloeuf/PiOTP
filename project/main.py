@@ -1,6 +1,6 @@
 """
 Description:
-Code for IOTP Project
+Server that deals with the data visualization portion.
 
 API  (Only get and post methods are allowed):
 GET:

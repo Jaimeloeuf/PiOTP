@@ -1,5 +1,6 @@
 from mqtt import pub, sub, set_broker, set_topic
 from pi_controller import getAirconController
+from datetime import datetime
 
 # Set publisher topic
 set_topic("JJ/is", 'p')
@@ -37,3 +38,6 @@ def set_state(set_this, to_this):
 	elif set_this == 'mode':
 		ac.set_mode()
 
+
+now = datetime.now()
+now.date
