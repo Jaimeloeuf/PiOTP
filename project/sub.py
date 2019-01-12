@@ -25,8 +25,9 @@ def new_Msg(client, userdata, message):
     print("%s : %s" % (message.topic, message.payload))
 
 
-def sub():
-	subscribe.callback(new_Msg, topic, hostname=broker)
+# Subscribe function that subscribes to the topic and broker stored in this module.
+def sub(cb):
+	subscribe.callback(cb if cb else new_Msg, topic, hostname=broker)
 
 """ Below is code to subscribe to multiple topics """
 # topics = ['#']
