@@ -34,3 +34,25 @@ All modules who import it has access and the ability to control it.
         - On ac
         - : off ac if it was on.
     3. Set a "timezone" thing, so that the auto mode is only activated when it is in the current time now.
+
+
+### Topics used in the Broker, and also the default Topics inside the MQTT library
+
+The topic names are created by its unique name plus the prefix infront of it.
+	prefix = 'IOTP/grp4/channel/'
+
+Command and Action topic is:
+- prefix + 'cact'
+Publishers of this topic:
+- Client application (either native or web)
+- Web Service ??
+Consumer of this topic:
+- MQTT client on the Pi subscribes to this data and relays it to the AC controller after authentication
+
+Sensor data topic is:
+- prefix + 'sdat'
+Publishers of this topic:
+- (BME Sensor reader -> Pi -> MQTT Client library) The MQTT client on the Pi publishes data from the sensor reader module
+Consumer of this topic:
+- Web service (for data visualisation)
+- Client application (either native or web)

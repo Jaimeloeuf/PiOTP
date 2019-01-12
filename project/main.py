@@ -1,3 +1,4 @@
+from passlib.hash import pbkdf2_sha256 as sha256
 """
 Description:
 Server that deals with the data visualization portion.
@@ -16,12 +17,10 @@ POST:
 from flask import Flask, render_template, redirect, url_for, request, abort, jsonify
 # To get environmental variables avail to the process
 from os import environ
-from pi_controller import getBuzzerController, getAirconController
 
 # 'Global' object for Flask server
 app = Flask(__name__)
 
-# Flask server routes
 
 @app.route('/', methods=['GET'])
 @app.route('/home', methods=['GET'])
@@ -31,16 +30,18 @@ def home_page():
     # If the user is not logged in
     redirect(url_for('login'))
     # Use put user data into home page and send it back
-    return render_template('./index.html', name = name)
+    return render_template('./index.html', name=name)
 
-# Flask Route to mimic pressing the button
+
 @app.route('/login', methods=['POST'])
 def login():
     if request.headers.get('authorization')
-        redirect(url_for('home')) # If user already logged in with valid JWT, then redirect to home page
+    # If user already logged in with valid JWT, then redirect to home page
+    redirect(url_for('home'))
 
     if 'Authorization' in request.headers:
-        redirect(url_for('home')) # If user already logged in with valid JWT, then redirect to home page
+        # If user already logged in with valid JWT, then redirect to home page
+        redirect(url_for('home'))
 
     credentials = request.form
     for key, val in credentials.items():
@@ -53,6 +54,7 @@ def login():
     # If matches, create a JWT for the user
     checkPasswd()
 
+
 # Server Route to test if remote server is online
 @app.route('/ping', methods=['GET'])
 def ping():
@@ -61,17 +63,16 @@ def ping():
 
 
 # For authentication usage
-from passlib.hash import pbkdf2_sha256 as sha256
+
 
 def generate_hash(password):
     return sha256.hash(password)
+
 
 def verify_hash(password, hash):
     return sha256.verify(password, hash)
 
 
-
-    
 if __name__ == "__main__":
     # Use PORT from the environment if defined, otherwise default to 5000.
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
