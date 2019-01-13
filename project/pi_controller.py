@@ -2,10 +2,13 @@
 This module will expose different funnctions to external API calls to control the PI's
 hardware connection through the GPIO
 """
+# Dependencies
 # Raspberry Pi GPIO usage dependencies
 from gpiozero import LED, PWMLED, Button
 # import asyncio to allow async sleep/delay operation
 from asyncio import sleep
+# Timer object to allow task scheduling that runs on another thread
+from threading import Timer
 
 
 # Setting event listeners for Button input change
@@ -25,6 +28,12 @@ from asyncio import sleep
 
 
 class getAirconController:
+	# Mode variable keep tracks of current mode the AC is on. Default is manual mode.
+	mode = 'man'
+	# Single timer object to keep track of time.
+	ac_timer = None
+
+
     # The constructor calls set_pin object method to set pin.
     def __init__(self):
         self.set_pin()  # Call object method to set default pin
@@ -43,6 +52,10 @@ class getAirconController:
         if time_on:
             await sleep(time_on)  # Create an async wait timer
             self.aircon.off()
+
+			# Alternative method to the asyncio wait
+			# On the AC
+			self.ac_timer = Timer(time_on, self.off) # Probs need put this func adter the off func
 
     # Wrapper method over the aircon off function.
     def off(self):

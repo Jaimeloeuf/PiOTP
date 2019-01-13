@@ -2,11 +2,14 @@ from passlib.hash import pbkdf2_sha256 as sha256
 """
 Description:
 Server that deals with the data visualization portion.
+This web server / web service is designed to be server agnostic, and can run either on
+the Pi itself or on an external VPS over the internet.
 
-API  (Only get and post methods are allowed):
+HTTP based RESTful API  (Only get and post methods are allowed):
 GET:
     /	or	/index -> static html file of user home page created using the Jinja templating engine
     /login -> static html returned for user to enter data and submit form data
+	/vis
 
 POST:
     /login -> endpoint for posting username and password over to server for verification.
