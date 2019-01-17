@@ -4,7 +4,7 @@ Module Desciption:
     of the MQTT Client lib, the AC controller and the BME sensor interface.
 
 Example code:
-    set_topic("JJ/is", 'p') # Set publisher topic
+    set_topic("JJ", 'p') # Set publisher topic
     pub('helifgjs') # Publish payload to topic
     sub() # Subscribe to the default topic from the default broker
     pub('helifgjs') # Publish payload to topic
@@ -15,6 +15,7 @@ User can pub a message to ask this to pub a message about the current state
 # Dependencies
 from mqtt import pub, sub, set_broker, set_topic
 from ac import getAC
+from BME import bme as BME
 from threading import Timer
 from datetime import datetime
 
@@ -89,6 +90,32 @@ def readData(time_interval):
 timer = readData()
 if stop:
 	timer.cancel()
+
+
+
+
+
+
+
+
+import asyncio
+# Variables to maintain the current state of the system. Everytime there is a change, call MQTT to send data
+
+
+# Variable that keeps track of the wait time.
+delay_time = (2 * 60) # 2 Mins delay
+
+# High level infinite loop
+while True:
+	# Call BME module to update the state variables
+	sensor_data = BME.read()
+	
+	# Wait for set time before continuing
+	asyncio.sleep(delay_time)
+
+
+
+
 
 
 # Set topic to subscribe to.
