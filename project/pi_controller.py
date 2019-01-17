@@ -14,7 +14,7 @@ User can pub a message to ask this to pub a message about the current state
 
 # Dependencies
 from mqtt import pub, sub, set_broker, set_topic
-from pi_controller import getAC
+from ac import getAC
 from threading import Timer
 from datetime import datetime
 
