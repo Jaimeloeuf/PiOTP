@@ -2,15 +2,20 @@ You can only control the aircon by using the same reference to the one ac contro
 All modules who import it has access and the ability to control it.
 
 ### Control / main modules and functions
-- main.py :
-	This module contains the Flask server
+- Server module:
+	This module contains the Flask server, that is 'physical server' agnostic, and can run both on the Pi
+	as a seperate process, or on an external VPS.
+- pi_controller module:
+	This module is the 'glue' code that acts as the main control software on the Pi.
+	It will act as the intermediary code on the Pi between the BME sensor controller, the AC controller and
+	the MQTT Client connections to the broker.
 
 ### Utilities libraries and modules
 - MQTT module:
 	A simple wrapper library/module over the single ended pub and sub actions provided by the paho MQTT package.
-- pi_controller module:
-	Defines the AC controller and its methods, for us to set AC state.
-- BME_control module:
+- ac module:
+	Defines and exposes the AC controller object and its methods, for us to set AC state.
+- BME module:
 	Module used to read values (temp, humidity) from the BME Sensor.
 
 
