@@ -1,4 +1,3 @@
-from time import sleep
 from threading import Timer
 
 """  Example Usage:
@@ -10,28 +9,68 @@ from threading import Timer
 	interval1.stop()
 """
 
-class setTinterval():
-    def __init__(self, sec, fn):
-        # Create setTimeOut function, that will call the fnWrapper after set time
-        self.sec = sec
+
+# class setTinterval():
+#     def __init__(self, sec, fn):
+#         # Create setTimeOut function, that will call the fnWrapper after set time
+#         self.sec = sec
+#         self.fn = fn
+#         self.t = Timer(sec, self.fn_wrapper)
+#         # Start the timer
+#         self.t.start()
+
+#     def fn_wrapper(self):
+#         self.fn()
+#         self.t = Timer(self.sec, self.fn_wrapper)
+#         # Start the timer
+#         self.t.start()
+
+#     def stop(self):
+#         self.t.cancel()
+
+
+class setInterval:
+    def __init__(self, time, fn, *args, **kwargs):
+        self.time = time
         self.fn = fn
-        self.t = Timer(sec, self.fn_wrapper)
-        # Start the timer
-        self.t.start()
+        self.args = args
+        self.kwargs = kwargs
+        # Instead of starting the function on object creation, wait till the end of the 1st interval before calling the function
+        # self.start() # Call the function the first time
+        # Delay the first call by the given time interval
+        Timer(self.time, self.timeOut).start()
+	
+    # Method that is run everytime the Timer time's out.
+    def timeOut(self):
+        # Call the given function with any arguements supplied
+        self.fn(*self.args, **self.kwargs)
+        # Create another Timer object, to call this function again on timeout.
+        self.__t = Timer(self.time, self.timeOut)
+        self.__t.start()
 
-    def fn_wrapper(self):
-        # Call the original function
-        self.fn()
-        # Create another setTimeOut function, to call this function again.
-        self.t = Timer(self.sec, self.fn_wrapper)
-        # Start the timer
-        self.t.start()
+    def stop(self, oneLastTime=False):
+        # Kill the timer that repeatedly calls the timeOut method.
+        self.__t.cancel()
+        # If 'oneLastTime' is True, Call the given function with any arguements supplied for the last time.
+        if oneLastTime:
+            self.fn(*self.args, **self.kwargs)
 
-    def stop(self):
-        self.t.cancel()
+# exec()
+# ^ Learn abt above
 
 
-# Code below is faced out for now in favour of the new class design
+if __name__ == "__main__":
+    # If this module called as a standalone module to see how it works, then run the below example code
+    from time import sleep
+
+    def hi(val):
+        print(val)
+
+    tout = setInterval(1, hi, 'hei')
+    sleep(6)
+    tout.stop()
+
+
 # """  Example Usage:
 
 # 	# Function to schedule
@@ -45,27 +84,3 @@ class setTinterval():
 # 	timer.cancel()
 
 # """
-
-# # GLobal variable used to store the reference to the current running timer.
-# t = None
-
-# # Function that calls the given function every 'sec' seconds
-# def setInterval(sec, fn):
-#     # Use the global 't' variable for the scope of the setInterval function
-#     global t
-#     # Inner function that will be called when time outs
-
-#     def fn_wrapper():
-#         global t  # Use the global 't' variable for the scope of the fn_wrapper function
-#         # Call the original function
-#         fn()
-#         # Create another setTimeOut function, to call this function again.
-#         t = Timer(sec, fn_wrapper)
-#         # Start the timer
-#         t.start()
-
-#     # Create setTimeOut function, that will call the fnWrapper after set time
-#     t = Timer(sec, fn_wrapper)
-#     # Start the timer
-#     t.start()
-#     return t

@@ -30,9 +30,39 @@ def hi():
     print(val)
 
 
-setInterval(1, hi)
+# setInterval(1, hi)
 # Access the global timer object and kill timer at anytime/anywhere
-t.cancel()
+# t.cancel()
+
+# t1 = None
+# print(t1)
+# t1 = Timer(3, hi)
+# t1.start()
+# print(t1)
+# sleep(3.1)
+# print(t1)
+# t1._is_stopped
+
+
+class timeout:
+	def __init__(self, time, fn, *args, **kwargs):
+		self.time = time
+		self.fn = fn
+		self.args = args
+		self.kwargs = kwargs
+		self.start()
+
+	def start(self):
+		self.fn(*self.args, **self.kwargs)
+		self.__t = Timer(self.time, self.start)
+		self.__t.start()
+	
+	def stop(self):
+		self.__t.cancel()
+
+tout = timeout(1, hi, 'hei')
+sleep(3)
+tout.stop()
 
 
 # class ThreadJob(threading.Thread):
