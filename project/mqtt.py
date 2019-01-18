@@ -21,3 +21,11 @@ def set_topic(topic, pORs):
 		set_sub_topic(topic)
 	else:
 		return False
+
+
+if __name__ == "__main__":
+	# If module called as standalone module, run the example code below to demonstrate this MQTT client lib
+	set_topic("JJ_topic", 'p') # Set publisher topic
+	pub('helifgjs') # Publish payload to topic
+	sub() # Subscribe to the default topic from the default broker
+	pub('helifgjs') # Publish payload to topic

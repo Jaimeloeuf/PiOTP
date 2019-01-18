@@ -1,6 +1,4 @@
-"""
-
-	@Todo:
+"""	@Todos
 	- Implement a method to allow user to change the sequence in which the listeners are executed in
 	- Implement a show all listener method
 	- Implement a remove listener method

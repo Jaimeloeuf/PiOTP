@@ -3,7 +3,7 @@
 from gpiozero import LED, PWMLED, Button
 # Timer object to allow task scheduling that runs on another thread
 from threading import Timer
-
+from data_watcher import watch
 
 # Setting event listeners for Button input change
 # btn.when_pressed = self.btn_pressed_handler
@@ -58,11 +58,9 @@ class acController:
 
 
 # Variable that will be exported out to other modules to use to control the AC.
-ac = acController()
+# ac = acController()
 # Put the 'global' ac variable on watch, to prevent other modules or anything from changing its reference without notice
-
-
-
+ac = watch(acController()).get()
 
 # Error checking code to prevent running this module as it is.
 if __name__ == "__main__":
