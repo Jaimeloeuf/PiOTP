@@ -1,86 +1,55 @@
 from threading import Timer
 
-"""  Example Usage:
-
-	# Create a new interval of 5 seconds executing the function, fn
-	interval1 = setInterval(5, fn)
-
-	# Stop the interval
-	interval1.stop()
-"""
-
-
-# class setTinterval():
-#     def __init__(self, sec, fn):
-#         # Create setTimeOut function, that will call the fnWrapper after set time
-#         self.sec = sec
-#         self.fn = fn
-#         self.t = Timer(sec, self.fn_wrapper)
-#         # Start the timer
-#         self.t.start()
-
-#     def fn_wrapper(self):
-#         self.fn()
-#         self.t = Timer(self.sec, self.fn_wrapper)
-#         # Start the timer
-#         self.t.start()
-
-#     def stop(self):
-#         self.t.cancel()
-
-
 class setInterval:
-    def __init__(self, time, fn, *args, **kwargs):
-        self.time = time
-        self.fn = fn
-        self.args = args
-        self.kwargs = kwargs
-        # Instead of starting the function on object creation, wait till the end of the 1st interval before calling the function
-        # self.start() # Call the function the first time
-        # Delay the first call by the given time interval
-        Timer(self.time, self.timeOut).start()
-	
-    # Method that is run everytime the Timer time's out.
-    def timeOut(self):
-        # Call the given function with any arguements supplied
-        self.fn(*self.args, **self.kwargs)
-        # Create another Timer object, to call this function again on timeout.
-        self.__t = Timer(self.time, self.timeOut)
-        self.__t.start()
+	# To pass in the interval time, callback function, and any arguements for the callback function into the constructor
+	def __init__(self, time, fn, *args, **kwargs):
+		self.time = time
+		self.fn = fn
+		self.args = args
+		self.kwargs = kwargs
+		# Instead of calling method on object creation, wait till end of the 1st time interval before calling method
+		# Delay the first call to the timeout method by the given time interval
+		Timer(self.time, self.timeOut).start()
 
-    def stop(self, oneLastTime=False):
-        # Kill the timer that repeatedly calls the timeOut method.
-        self.__t.cancel()
-        # If 'oneLastTime' is True, Call the given function with any arguements supplied for the last time.
-        if oneLastTime:
-            self.fn(*self.args, **self.kwargs)
+	# Method that is run everytime the Timer time's out.
+	def timeOut(self):
+		# Call the given function with any arguements supplied
+		self.fn(*self.args, **self.kwargs)
+		# Create another Timer object, to call this function again on timeout.
+		self.__t = Timer(self.time, self.timeOut)
+		self.__t.start()
 
-# exec()
-# ^ Learn abt above
+	# Method to stop the loop, if needed, execute the callback one last time
+	def stop(self, oneLastTime=False):
+		# Kill the timer that repeatedly calls the timeOut method.
+		self.__t.cancel()
+		# If 'oneLastTime' is True, Call the given function with any arguements supplied for the last time.
+		if oneLastTime:
+			self.fn(*self.args, **self.kwargs)
 
+	# Set/Change the interval for which the timer takes to timeout. New interval will start immediately.
+	def set_interval(self, time):
+		# Stop the current timer
+		self.stop()
+		# Set the time into the object's field
+		self.time = time
+		# Delay the first call to the timeout method by the given time interval
+		Timer(self.time, self.timeOut).start()
+
+	# Set the arguements to be passed into the callback function
+	def set_args(self, *args, **kwargs):
+		# Set the input arguements into the object's fields.
+		self.args = args
+		self.kwargs = kwargs
 
 if __name__ == "__main__":
-    # If this module called as a standalone module to see how it works, then run the below example code
-    from time import sleep
+	# If this module called as a standalone module to see how it works, then run the below example code
+	from time import sleep
 
-    def hi(val):
-        print(val)
+	def hi(val):
+		print(val)
 
-    tout = setInterval(1, hi, 'hei')
-    sleep(6)
-    tout.stop()
-
-
-# """  Example Usage:
-
-# 	# Function to schedule
-# 	def hi():
-# 		print('hi')
-
-# 	# Create interval of 1 second and call hi function
-# 	timer = setInterval(1, hi)
-
-# 	# To stop the interval: Access the global timer object and kill timer at anytime/anywhere
-# 	timer.cancel()
-
-# """
+	tout = setInterval(1, hi, 'hei')
+	sleep(6)
+	# Stop the interval, but execute the callback one last time before killing the loop
+	tout.stop(True)
