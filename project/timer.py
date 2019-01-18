@@ -1,5 +1,20 @@
 from threading import Timer
 
+""" @Todos
+	- Create a method that will call the stop method when the process exits. Because the timer thread continues to run
+	  even if the main program/thread is killed by keyboard interrupt, which means that the stop method is never called.
+	- Create a method that allows user to specify if the interval should start running immediately. Meaning that I can create
+	  the interval and store the reference first without letting it run, this is so to allow me to do some settings/changes to
+	  the object first, or to allow user to only execute this 'loop' when certain conditions are met.
+	- Create a method/check for the user to specify how many times this interval should run. So example would be, I only
+	  want this interval based loop to loop a maximum of 10 times before I want it to automatically stop.
+	  Or perhaps a time limit for how long this loop should loop for, like loopFor(10mins), meaning after 10 mins, the loop
+	  should call self.stop method. This can be possibly implemented by using another 'kill interval' timer that calls the
+	  stop method upon timeout.
+	- Should I perhaps modify all the attributes/object-fields to be 'hidden' or 'private'? To prevent user from directly
+	  accessing the data in the object, which might potentially cause the object to fail?
+"""
+
 class setInterval:
 	# To pass in the interval time, callback function, and any arguements for the callback function into the constructor
 	def __init__(self, time, fn, *args, **kwargs):

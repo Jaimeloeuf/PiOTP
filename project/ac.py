@@ -26,7 +26,7 @@ from threading import Timer
 """
 
 
-class getAirconController:
+class acController:
     # Single timer object to keep track of time.
     ac_timer = None
 
@@ -57,22 +57,14 @@ class getAirconController:
         self.aircon.state()
 
 
-# Create a function to wrap this inside the state
-ac = getAirconController()
+# Variable that will be exported out to other modules to use to control the AC.
+ac = acController()
+# Put the 'global' ac variable on watch, to prevent other modules or anything from changing its reference without notice
 
 
-""" How to prevent other modules from accessing the getAirconController class rather than the getAC function """
-
-
-def getAC():
-    # Function to get the reference to the ac controller
-    # Reference the global variable 'ac' that stores the only AC controller object accessible/created
-    global ac
-    return ac
 
 
 # Error checking code to prevent running this module as it is.
 if __name__ == "__main__":
     print('Error, this module, "%s" should not be used as a standalone module' % __name__)
-    # print('Error, this module, "pi_state" should not be used as a standalone module')
     exit()
