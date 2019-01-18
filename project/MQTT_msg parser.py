@@ -41,6 +41,12 @@ def set_state(set_this, to_this):
 
 """	List of possible valid messages that will be received from the MQTT broker
 
+# Should I make all of the incoming messages url encoded? So I can just use any library or smth to parse
+	it for me instead of writing my own parser and switcher function.
+# Learn how to use docker to automate all the installation and everything. This is a great opportunity to learn docker!
+# Put my project description and everything up online too, so ppl know what the project I am woring on is about.
+# should there be different parsers based on which mode is currently operating?
+
 * Everytime the state of the AC is changed, it should use the MQTT lib to publish the change.
 
 	ac=on;
@@ -66,21 +72,23 @@ def set_state(set_this, to_this):
 		Do not change the current state of the AC
 		Just change the mode to auto, and set the callbacks and everything and let it run
 
-	mode=timed;time=x;
+	mode=timed;
 		!!! Timed mode means, on for a set time, or on for a specific time of the day.
+		In the timed mode, another message will be expected
+
+* When in timed mode, incoming messages that does not change mode or ac state are the following to control the timed mode actions
+
+	time=x;
 		Turn the AC on regardless of current state.
 		Create a timer to countdown with the given time to off the AC after that, if at anypoint, the
 		ac is offed, or this mode is 'turned off' then kill the timer
 
-	mode=timed;start=x;end=y;
-		!!! Timed mode means, on for a set time, or on for a specific time of the day.
-		Change the mode to timed, and disable everything and just wait for the start time, --> use a event thing or smth for the start time
+	start=x;end=y;repeat=true;?
+		Disable everything and just wait for the start time, --> use a event thing or smth for the start time
 		when it is start time, on the AC and wait for the end time
-		when it is the end time, off the AC and put the system into timed mode doing nth and waiting for a new time?
-
-	start=x;end=y;
-		This command is only valid if the current mode is timed,
-		do the abv actions with this new set of 'time zone'
+		when it is the end time, off the AC and put the system into timed mode.       doing nth and waiting for a new time?
+		The last kv pair received is optional and is used to indicate if the timed mode should constantly operate at the set time over and
+		over again through multiple days, if false or unset, then it will nvr repeat.
 
 
 mode is basically choosing which "pi controller" to use to control the pi's ac
