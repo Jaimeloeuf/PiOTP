@@ -1,7 +1,3 @@
-"""
-This module will expose different funnctions to external API calls to control the PI's
-hardware connection through the GPIO
-"""
 # Dependencies
 # Raspberry Pi GPIO usage dependencies
 from gpiozero import LED, PWMLED, Button
@@ -15,23 +11,26 @@ from threading import Timer
 # btn.when_pressed = self.btn_pressed_handler
 # self.btn = btn
 
-"""
-1. Create and initializa a ac controller:
-    ac = getAirconController()
-2. On ac
-    ac.on()
-3. Off ac
-    ac.off()
-4. On ac for a set time asynchrounously.
-    ac.on(1000)
+""" @Docs
+    This module will expose different funnctions to external API calls to control the PI's
+    hardware connection through the GPIO.
+
+
+    @Code Examples
+    1. Get the single AC controller
+        ac = getAC()
+    2. On ac
+        ac.on()
+    3. Off ac
+        ac.off()
+    4. On ac for a set time asynchrounously.
+        ac.on(1000)
 """
 
 
 class getAirconController:
-	# Mode variable keep tracks of current mode the AC is on. Default is manual mode.
-	mode = 'man'
-	# Single timer object to keep track of time.
-	ac_timer = None
+    # Single timer object to keep track of time.
+    ac_timer = None
 
 
     # The constructor calls set_pin object method to set pin.
@@ -53,33 +52,13 @@ class getAirconController:
             await sleep(time_on)  # Create an async wait timer
             self.aircon.off()
 
-			# Alternative method to the asyncio wait
-			# On the AC
-			self.ac_timer = Timer(time_on, self.off) # Probs need put this func adter the off func
+            # Alternative method to the asyncio wait
+            # On the AC
+            self.ac_timer = Timer(time_on, self.off) # Probs need put this func adter the off func
 
     # Wrapper method over the aircon off function.
     def off(self):
         self.aircon.off()
-
-    def set_mode(self, mode):
-        if mode == 'auto':
-            self.auto('start')
-        elif mode == 'man':
-            self.auto('stop')
-        else:
-            return False  # Return false to indicate error and operation failure
-
-    def auto(state):
-        # Start and stop the loop based on the state?
-
-        while True:
-            if temp > threshold:
-                self.off()
-            else:
-                # Should I put the delay here instead? To test this concept
-                self.on(60 * 5)
-            # Create async timed loop to control aircon in the background
-            await sleep(60 * 5)  # Wait for 5 mins
 
     def state(self):
         self.aircon.state()
@@ -89,8 +68,13 @@ class getAirconController:
 ac = getAirconController()
 
 
+""" How to prevent other modules from accessing the getAirconController class rather than the getAC function """
+
+
 def getAC():
-    # Function to return the global variable that stores the reference to the ac controller
+    # Function to get the reference to the ac controller
+    # Reference the global variable 'ac' that stores the only AC controller object accessible/created
+    global ac
     return ac
 
 
