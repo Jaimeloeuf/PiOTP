@@ -43,6 +43,8 @@ def set_state(set_this, to_this):
 
 # Should I make all of the incoming messages url encoded? So I can just use any library or smth to parse
 	it for me instead of writing my own parser and switcher function.
+	# Turn all of this into regex to search for incoming messages if not using the urlencoded method
+	
 # Learn how to use docker to automate all the installation and everything. This is a great opportunity to learn docker!
 # Put my project description and everything up online too, so ppl know what the project I am woring on is about.
 # should there be different parsers based on which mode is currently operating?
