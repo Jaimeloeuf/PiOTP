@@ -40,6 +40,7 @@ def readData():
 
 # Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
 intervalTimerRef = setInterval(intervalTime, readData)
+intervalTimerRef.stop() # Stop the interval loop
 
 # There can only be one timerLoop that calls the readData function in the whole running process to prevent data duplication
 # Is there hoisting in python code?
