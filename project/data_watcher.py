@@ -5,7 +5,7 @@
 """
 
 class watch:
-    cbs = []
+    __cbs = []
 
     def __init__(self, data):
         self.__data = data
@@ -18,10 +18,10 @@ class watch:
         return self.__data
 
     def addListener(self, cb):
-        self.cbs.append(cb)
+        self.__cbs.append(cb)
 
     def __event(self):
-        for cb in self.cbs:
+        for cb in self.__cbs:
             cb()
 
 

@@ -61,3 +61,88 @@ Publishers of this topic:
 Consumer of this topic:
 - Web service (for data visualisation)
 - Client application (either native or web)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Every message received in the Topic: 'command+actions' should be a kv pair thing
+So the key is the command, and the value is the action or the value or the thing...
+E.g.
+
+key is the thing to act upon
+value is the action or state that should be applied to the key
+
+ac=on
+ac=off
+set_sd_interval= # Can set the interval in which the sensor data will be read.
+^ Abv commands can be sent regardless of what mode it is now operating in.
+
+The reading of data from the sensor is independant of the current mode. A setInterval loop will call the
+function over and over again to update the variable. Everytime the variable updates, there can be event handlers.
+
+The event handlers should be called every single time the set method of the object is called.
+
+Should I get the event handlers to run in another thread?
+Also should the MQTT work in another background thread?
+
+	So based on the global variable, decide what mode it is operating in,
+	choose a function for that mode, and apply that as a cb to the addlistener for the sensoor data
+	when the variable itself is updated, use a event and callback to change the callback function of the sensor data
+	To set a new cb function, use a method to either clear all listeners or remove last listener on the stack,
+	before setting the new cb into it.
+	
+
+	Make everything into data that is watched so everything will be like node js events
+	- Like the brokers and the topics should also be watched so when anything changes, there
+	can be event handlers, so you no longer need to set the publisher and broker every single time before publishing data
+	when the sensordata changes.
+
+The different modes
+	Data is always read at the given interval and the value is always updated after reading.
+	The function for all these modes will just be event handlers that will be called when the value is updated
+
+		sub to the broker's 'man' cmd topic,
+		given a new msg that the broker pushed down, do what is requested for
+			If the state of the AC is changed, publish the event too.
+
+
+Man:
+	# Do nth but publish the data, the pi_controller should not control the ac directly, only the incoming msg can
+	publish the sensor data to the broker
+	--> repeat
+
+Auto:
+	publish the sensor data to the broker
+	Check if the sensor data exceeded the threshold variables
+		if exceeded
+			change AC state, should there be an on time given? to off the AC after a specified time
+			publish above event to broker
+		elif below threshold but AC still on:
+			off AC
+			publish abv event to broker
+	--> repeat
+
+Timezone:
+	publish the sensor data to the broker
+	--> repeat
+
+	(in the background):
+	Timer object running, cos the AC is set to on, but with a timeout to off it.
+
+
+	Implement the watch var class to the AC controller.
+
+

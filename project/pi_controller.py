@@ -13,84 +13,22 @@ from mqtt import pub, sub, set_broker, set_topic
 from data_watcher import watch
 # from BME import bme as BME
 from timer import setInterval
-# from datetime import datetime
-# now = datetime.now()
-# now.date
 
-"""
-Every message received in the Topic: 'command+actions' should be a kv pair thing
-So the key is the command, and the value is the action or the value or the thing...
-E.g.
-
-key is the thing to act upon
-value is the action or state that should be applied to the key
-
-ac=on
-ac=off
-set_sd_interval= # Can set the interval in which the sensor data will be read.
-
-
-	So based on the global variable, decide what mode it is operating in,
-	choose a function for that mode, and apply that as a cb to the addlistener for the sensoor data
-	when the variable itself is updated, use a event and callback to change the callback function of the sensor data
-	To set a new cb function, use a method to either clear all listeners or remove last listener on the stack,
-	before setting the new cb into it.
-	
-
-	Make everything into data that is watched so everything will be like node js events
-	- Like the brokers and the topics should also be watched so when anything changes, there
-	can be event handlers, so you no longer need to set the publisher and broker every single time before publishing data
-	when the sensordata changes.
-
-The different modes
-	Data is always read at the given interval and the value is always updated after reading.
-	The function for all these modes will just be event handlers that will be called when the value is updated
-
-		sub to the broker's 'man' cmd topic,
-		given a new msg that the broker pushed down, do what is requested for
-			If the state of the AC is changed, publish the event too.
-
-
-Man:
-	# Do nth but publish the data, the pi_controller should not control the ac directly, only the incoming msg can
-	publish the sensor data to the broker
-	--> repeat
-
-Auto:
-	publish the sensor data to the broker
-	Check if the sensor data exceeded the threshold variables
-		if exceeded
-			change AC state, should there be an on time given? to off the AC after a specified time
-			publish above event to broker
-		elif below threshold but AC still on:
-			off AC
-			publish abv event to broker
-	--> repeat
-
-Timezone:
-	publish the sensor data to the broker
-	--> repeat
-
-	(in the background):
-	Timer object running, cos the AC is set to on, but with a timeout to off it.
-
-
-	Implement the watch var class to the AC controller.
-
-
- """
-
- commands = {
-	"ac",
-	"sd"
-}
-
+""" Global Variables: """
 # Create a new global variable to store sensorData with a initial state of None using the watch class.
 sensorData = watch(None)
-# Every time there is a new data, 
-sensorData.addListener()
+# Create a new global variable to store interval time between calls to update the sensor data.
+intervalTime = watch(30) # Initial value of 30 seconds intervals
 
+
+# Function to change interval time variable. Interval span can be changed by the User via MQTT
+def setIntervalTime(time):
+	pass
+
+
+# Function that will be called every "interval" to update the sensorData and publish the the data to the Broker
 def readData():
+	# Reference the variable in the global file scope
 	global sensorData
 	# Read data from sensor and store inside the sensorData object
 	sensorData.set(BME.getData())
@@ -100,14 +38,40 @@ def readData():
 	pub(sensorData.get())
 
 
-# Call the readData function every 2 minutes to update the sensor Data. Interval span can be changed by the User via MQTT
-setInterval((2 * 60), readData)
+# Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
+intervalTimerRef = setInterval(intervalTime, readData)
+
+# There can only be one timerLoop that calls the readData function in the whole running process to prevent data duplication
+# Is there hoisting in python code?
 
 
 # Set topic to subscribe to.
 set_topic("cact", 's')
 # Subscribe to the topic that has been set.
 sub(parse_payload)
+
+
+
+
+
+
+
+commands = {
+	"ac",
+	"sd"
+}
+
+# The below will be set by the different modes. On setting a new mode, do this
+# Every time there is a new data, 
+sensorData.addListener()
+
+
+
+
+
+
+
+
 
 
 
@@ -128,6 +92,8 @@ def change_mode(mode):
 
 
 
+# The below functions are to run as "init" functions when the modes are first set.
+
 def mode_auto(state):
 	# Start and stop the loop based on the state?
 
@@ -141,6 +107,8 @@ def mode_auto(state):
 		await sleep(60 * 5)  # Wait for 5 mins
 
 def mode_man():
-	pass
+	# If this is the current running mode, just wait for new incoming commands
+
+
 def mode_timed():
 	pass
