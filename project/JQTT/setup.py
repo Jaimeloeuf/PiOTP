@@ -1,10 +1,11 @@
 from setuptools import setup
 
+# Function to open the README file.
 def readme():
     with open('README.rst') as f:
         return f.read()
 
-setup(name='funniest',
+setup(name='JQTT',
       version='0.1',
       description='Simplified MQTT library',
 	  long_description=readme(),
@@ -17,14 +18,12 @@ setup(name='funniest',
         'Topic :: Communications',
 		'Topic :: Utilities'
       ],
-	  keywords='MQTT',
-      url='http://github.com/storborg/funniest',
+	  keywords='MQTT pub sub broker client',
+      url='http://github.com/jaimeloeuf',
       author='Jaime Loeuf',
       author_email='jaimeloeuf@gmail.com',
       license='MIT',
       packages=['funniest'],
-	  install_requires=[
-          'paho.mqtt.publish',
-      ],
+	  install_requires=['paho-mqtt'],
 	  include_package_data=True,
       zip_safe=False)
