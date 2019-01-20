@@ -7,7 +7,8 @@ Module Desciption:
 
 # Dependencies
 # MQTT Client lib
-from mqtt import pub, sub, set_broker, set_topic
+# from mqtt import pub, sub, set_broker, set_topic
+from JQTT import pub, sub, set_broker, set_topic
 # Get the AC controller from the ac module.
 # from ac import getAC
 from data_watcher import watch
