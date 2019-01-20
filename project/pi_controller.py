@@ -48,37 +48,20 @@ intervalTimerRef.stop() # Stop the interval loop
 
 
 # Set topic to subscribe to.
-set_topic("cact", 's')
+# set_topic("cact", 's')
 # Subscribe to the topic that has been set.
-sub(parse_payload)
+# sub(parse_payload)
 
 
-
-
-
-
-
-commands = {
-	"ac",
-	"sd"
-}
 
 # The below will be set by the different modes. On setting a new mode, do this
 # Every time there is a new data, 
-sensorData.addListener()
-
-
-
-
-
-
-
-
-
+# sensorData.addListener()
 
 
 
 # Function that returns the different functions to run as eventListeners/background-task when a new mode is used
+# Every time the mode changes, execute/call the init function of that mode.
 def change_mode(mode):
 	if mode == 'auto':
 		return mode_auto
@@ -93,7 +76,6 @@ def change_mode(mode):
 
 
 
-
 # The below functions are to run as "init" functions when the modes are first set.
 
 def mode_auto(state):
@@ -101,15 +83,18 @@ def mode_auto(state):
 
 	while True:
 		if temp > threshold:
-			self.off()
+			off()
 		else:
 			# Should I put the delay here instead? To test this concept
-			self.on(60 * 5)
+			on(60 * 5)
 		# Create async timed loop to control aircon in the background
-		await sleep(60 * 5)  # Wait for 5 mins
+		sleep(60 * 5)  # Wait for 5 mins
 
 def mode_man():
 	# If this is the current running mode, just wait for new incoming commands
+	# Reference the global variable sensorData
+	global sensorData
+	sensorData.removeListener()
 
 
 def mode_timed():

@@ -1,8 +1,10 @@
 """	@Todos
-	- Implement a method to allow user to change the sequence in which the listeners are executed in
-	- Implement a show all listener method
-	- Implement a remove listener method
+    - Implement a method to allow user to change the sequence in which the listeners are executed in
+    - Perhaps a method to allow all the callback functions to be executed concurrently in multiple threads.
+    - Implement a show all listener method
+    - Implement a remove listener method
 """
+
 
 class watch:
     __cbs = []
@@ -20,6 +22,10 @@ class watch:
     def addListener(self, cb):
         self.__cbs.append(cb)
 
+    def removeListener(self, cb=None):
+        # To implement the second part where only the specified callback function is removed.
+        self.__cbs.clear()  # Not sure if this method works, needs to be tested
+
     def __event(self):
         for cb in self.__cbs:
             cb()
@@ -29,12 +35,12 @@ class watch:
 if __name__ == "__main__":
     from time import sleep
 
-	# Create a new data variable and store in the watchData object
+    # Create a new data variable and store in the watchData object
     sensorData = watch(36349)
-	# The data stored in the object can only be accessed via the get method
+    # The data stored in the object can only be accessed via the get method
     print(sensorData.get())
 
-	# Below are 3 different callbacks that should run when the data changes
+    # Below are 3 different callbacks that should run when the data changes
     def hi():
         print('hello world')
 
@@ -44,25 +50,25 @@ if __name__ == "__main__":
     def hi3():
         print('world')
 
-	# Add the callbacks to the object
+        # Add the callbacks to the object
     sensorData.addListener(hi)
     sensorData.addListener(hi2)
     sensorData.addListener(hi3)
 
-	# Add a time delay to simulate real life operations
+    # Add a time delay to simulate real life operations
     sleep(4)
 
-	# Update the data in the object, this will cause all the callbacks to be called.
+    # Update the data in the object, this will cause all the callbacks to be called.
     sensorData.set(5)
-	# Print out the updated value stored in the object.
+    # Print out the updated value stored in the object.
     print(sensorData.get())
 
-	# Add a time delay to simulate real life operations
+    # Add a time delay to simulate real life operations
     sleep(4)
 
 # Trigger when set function called, or when the valus is set, or when the value different from the value inside now
 
-	# Update the data in the object, this will cause all the callbacks to be called.
+    # Update the data in the object, this will cause all the callbacks to be called.
     sensorData.set(5)
-	# Print out the updated value stored in the object.
+    # Print out the updated value stored in the object.
     print(sensorData.get())
