@@ -5,10 +5,10 @@ from JQTT.sub import sub
 
 if __name__ == "__main__":
 	# If module called as standalone module, run the example code below to demonstrate this MQTT client lib
-	set_topic("JJ_topic", 'p') # Set publisher topic
+	set_topic("my_topic", 'p') # Set publisher topic
 	pub('helifgjs') # Publish payload to topic
 
-	set_topic("JJ_topic", 's') # Set publisher topic
+	set_topic("my_topic", 's') # Set publisher topic
 	print('topic for s after setting is: ', get_topic('s'))
 	from JQTT.sub import topic
 	print('topic for s after setting is: ', topic)
