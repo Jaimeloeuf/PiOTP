@@ -70,30 +70,9 @@ Consumer of this topic:
 
 
 
-
-
-
-
-
-
-
-
-Every message received in the Topic: 'command+actions' should be a kv pair thing
-So the key is the command, and the value is the action or the value or the thing...
-E.g.
-
-key is the thing to act upon
-value is the action or state that should be applied to the key
-
-ac=on
-ac=off
-set_sd_interval= # Can set the interval in which the sensor data will be read.
-^ Abv commands can be sent regardless of what mode it is now operating in.
-
 The reading of data from the sensor is independant of the current mode. A setInterval loop will call the
-function over and over again to update the variable. Everytime the variable updates, there can be event handlers.
-
-The event handlers should be called every single time the set method of the object is called.
+function repeatedly to update the variable. Everytime the variable updates, event handlers will be called.
+The event handlers are called every single time the set method is called to set a value.
 
 Should I get the event handlers to run in another thread?
 Also should the MQTT work in another background thread?
@@ -117,7 +96,6 @@ The different modes
 		sub to the broker's 'man' cmd topic,
 		given a new msg that the broker pushed down, do what is requested for
 			If the state of the AC is changed, publish the event too.
-
 
 Man:
 	# Do nth but publish the data, the pi_controller should not control the ac directly, only the incoming msg can
@@ -146,3 +124,58 @@ Timezone:
 	Implement the watch var class to the AC controller.
 
 
+Everytime AC state changes, the pi_controller will publish by MQTT to the 'ac_state' topic.
+====================================================================================================================================
+
+	List of possible valid messages that will be received from the MQTT broker
+
+Should I make all of the incoming messages url encoded? So I can just use any library or smth to parse
+	it for me instead of writing my own parser and switcher function.
+	Turn all of this into regex to search for incoming messages if not using the urlencoded method
+should there be different parsers based on which mode is currently operating?
+
+	ac=on;
+		Turn the AC on regardless of current state.
+		When this command is received and the Pi is in the auto/timed mode
+			change the mode to manual
+			and turn ac on
+
+	ac=on;time=x;
+		Where x is the time that the AC will be on for.
+		Use ac'=off;' message to off the AC manually
+
+	ac=off;
+		When this command is received and the Pi is in the auto/timed mode
+			change the mode to manual
+			and turn ac off
+
+	mode=man;
+		Do not change the current state of the AC
+		Just change the mode to man, and disable all the auto controls to the AC
+
+	mode=auto;
+		Do not change the current state of the AC
+		Just change the mode to auto, and set the callbacks and everything and let it run
+
+	mode=timed;
+		!!! Timed mode means, on for a set time, or on for a specific time of the day.
+		In the timed mode, another message will be expected
+
+timed mode's actions can be interrupted by incoming messages that changes mode or ac state directly.
+In timed mode, the pi_controller will constantly wait for 2 different timed mode specific commands, to set a timeout value or a timeZone?
+
+	time=x;
+		Turn the AC on regardless of current state.
+		Create a timer to countdown with the given time to off the AC after that, if at anypoint, the
+		ac is offed, or this mode is 'turned off' then kill the timer
+
+	start=x;end=y;repeat=true;?
+		Disable everything and just wait for the start time, --> use a event thing or smth for the start time
+		when it is start time, on the AC and wait for the end time
+		when it is the end time, off the AC and put the system into timed mode.       doing nth and waiting for a new time?
+		The last kv pair received is optional and is used to indicate if the timed mode should constantly operate at the set time over and
+		over again through multiple days, if false or unset, then it will nvr repeat.
+
+
+mode is basically choosing which "pi controller" to use to control the pi's ac
+^ Somewhat true
