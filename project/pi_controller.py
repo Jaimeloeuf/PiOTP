@@ -2,7 +2,7 @@
 Module Desciption:
 	This module is the code that will be running on the Pi to glue together the operations
 	of the MQTT Client lib, the AC controller and the BME sensor interface.
-	User can pub a message to ask the pi_controller to pub a message about the current state
+	User can pub a message to ask the pi_controller to pub a message about the current state.
 """
 
 # Dependencies
@@ -20,11 +20,24 @@ from timer import setInterval
 sensorData = watch(None)
 # Create a new global variable to store interval time between calls to update the sensor data.
 intervalTime = watch(30)  # Initial value of 30 seconds intervals
-
+# Everytime the interval time is successfully updated, the Pi will produce and publish a new Event.
+intervalTime.addListener()
 
 # Function to change interval time variable. Interval span can be changed by the User via MQTT
 def setIntervalTime(time):
-    pass
+	intervalTime.set(time)
+
+	# Stop the old interval
+	intervalTimerRef.stop()
+	# Start a new interval loop and assign it to the same variable
+	intervalTimerRef = setInterval(intervalTime.get(), readData)
+
+	""" TO move this code and the interval time var down below the interval timer ref as python no var hoisting. """
+	""" To implement feature in the ac module to auto pub state change every time. """
+
+	# Publish the message with the newly set intervalTime after everything is done.
+	pub(f'Interval time successfully updated to: {intervalTime.get()}')
+
 
 
 # Function that will be called every "interval" to update the sensorData and publish the the data to the Broker
@@ -40,7 +53,7 @@ def readData():
 
 
 # Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
-intervalTimerRef = setInterval(intervalTime, readData)
+intervalTimerRef = setInterval(intervalTime.get(), readData)
 intervalTimerRef.stop()  # Stop the interval loop
 
 # There can only be one timerLoop that calls the readData function in the whole running process to prevent data duplication

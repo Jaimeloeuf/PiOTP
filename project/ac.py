@@ -4,6 +4,7 @@ from gpiozero import LED, PWMLED, Button
 # Timer object to allow task scheduling that runs on another thread
 from threading import Timer
 from data_watcher import watch
+from JQTT import pub, set_topic
 
 # Setting event listeners for Button input change
 # btn.when_pressed = self.btn_pressed_handler
@@ -42,8 +43,13 @@ class acController:
 
     # Method to on the aircon, assuming that the aircon is active high output.
     def on(self, time_on=0):
-        # On the aircon
-        self.aircon.on()
+        # On the aircon if not on already
+        if self.state() == 'off':
+            self.aircon.on()
+            # Set publish topic and publish
+            set_topic('ac_state', 'p')
+            pub('on')
+            
         # If an on time is specified, wait asynchronously and off the aircon
         if time_on and self.ac_timer != None:
             # Create a timer object to call the self.off method after timeout
@@ -51,7 +57,12 @@ class acController:
 
     # Wrapper method over the aircon off function.
     def off(self):
-        self.aircon.off()
+        # Off the aircon if currently on
+        if self.state() == 'on':
+            self.aircon.off()
+            # Set publish topic and publish
+            set_topic('ac_state', 'p')
+            pub('off')
 
     def state(self):
         self.aircon.state()
