@@ -79,8 +79,22 @@ def change_mode(mode):
 # The below functions are to run as "init" functions when the modes are first set.
 
 def mode_auto(state):
-	# Start and stop the loop based on the state?
+	# If this is the current running mode, just wait for new incoming commandss
+	# Reference the global variable sensorData
+	global sensorData
+	# Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
+	sensorData.removeListener()
+	# Since at every interval, the variable is updated and the data is published to the MQTT broker, there is no need to do any other thing but wait for commands from MQTT that requests for a ac state change
+	
+	# Below function is called on new command/msg. Function to return this inner function
+	def onMessage(msg):
+		# Parse the message to determine what it is trying to say
+		# Verify that it is a valid message.
+			# If valid then do it
+			# else reject the message by publishing a 400 bad request?
 
+	# Make the below into a generator function that I can constantly yield new values out of.
+	# The yeild is to pause the execution of the function upon the so called "wait"
 	while True:
 		if temp > threshold:
 			off()
@@ -91,11 +105,28 @@ def mode_auto(state):
 		sleep(60 * 5)  # Wait for 5 mins
 
 def mode_man():
-	# If this is the current running mode, just wait for new incoming commands
+	# If this is the current running mode, just wait for new incoming commandss
 	# Reference the global variable sensorData
 	global sensorData
+	# Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
 	sensorData.removeListener()
+	# Since at every interval, the variable is updated and the data is published to the MQTT broker, there is no need to do any other thing but wait for commands from MQTT that requests for a ac state change
+	
+	# Below function is called on new command/msg. Function to return this inner function
+	def onMessage(msg):
+		# Parse the message to determine what it is trying to say
+		# Verify that it is a valid message.
+			# If valid then do it
+			# else reject the message by publishing a 400 bad request?
 
 
 def mode_timed():
-	pass
+	# If this is the current running mode, just wait for new incoming commands
+	# Reference the global variable sensorData
+	global sensorData
+	# Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
+	sensorData.removeListener()
+	# For the timed mode, listen for this few messages
+		# AC state change command
+		# Mode change command
+		# Set new time period/new timeout
