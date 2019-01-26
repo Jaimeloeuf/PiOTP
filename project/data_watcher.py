@@ -15,16 +15,19 @@ class watch:
     def set(self, data):
         self.__data = data
         self.__event()
+        return self
 
     def get(self):
         return self.__data
 
     def addListener(self, cb):
         self.__cbs.append(cb)
+        return self
 
     def removeListener(self, cb=None):
         # To implement the second part where only the specified callback function is removed.
         self.__cbs.clear()  # Not sure if this method works, needs to be tested
+        return self
 
     def __event(self):
         for cb in self.__cbs:
