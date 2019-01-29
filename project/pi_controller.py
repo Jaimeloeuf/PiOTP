@@ -10,10 +10,12 @@ Module Desciption:
 # from mqtt import pub, sub, set_broker, set_topic
 from JQTT import pub, sub, set_broker, set_topic
 # Get the AC controller from the ac module.
-from ac import getAC
+from ac import ac
 from data_watcher import watch
 # from BME import bme as BME
-from timer import setInterval
+
+# Import the setInterval class from JSutils package
+from JSutils import setInterval
 
 """ Global Variables: """
 # Create a new global variable to store sensorData with a initial state of None using the watch class.

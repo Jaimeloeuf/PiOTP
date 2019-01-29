@@ -30,6 +30,7 @@ class watch:
         return self
 
     def __event(self):
+		# Should call all the callbacks in sperate threads/processes
         for cb in self.__cbs:
             cb()
 
