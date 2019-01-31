@@ -13,7 +13,6 @@ from JQTT import pub, sub, set_broker, set_topic
 from ac import ac
 from data_watcher import watch
 # from BME import bme as BME
-
 # Import the setInterval class from JSutils package
 from JSutils import setInterval
 

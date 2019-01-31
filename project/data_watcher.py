@@ -7,10 +7,11 @@
 """
 
 from threading import Thread
+import threading
 from multiprocessing import Process, process
 
 
-class watch:
+class Watch:
     __cbs = []
 
     def __init__(self, data):
@@ -18,7 +19,7 @@ class watch:
 
     def set(self, data):
         self.__data = data
-        print('Set function called')
+        # self._event2()
         self.__event()
         return self
 
@@ -34,34 +35,10 @@ class watch:
         self.__cbs.clear()  # Not sure if this method works, needs to be tested
         return self
 
-    def __event2(self):
-        # Should call all the callbacks in sperate threads/processes
-        for cb in self.__cbs:
-            cb()
-
-    def __run_callbacks(self):
-        # create and start our threads
-        threads = []
+    def __event(self):
         # Loop through and run all the callbacks as seperate threads
         for cb in self.__cbs:
-            thread = Thread(target=cb)
-            thread.daemon = True
-            threads.append(thread)
-            thread.start()
-
-        # wait for all the threads to finish using (join)
-        for thread in threads:
-            # Blocking call till all the threads are done.
-            thread.join()
-
-    def __event(self):
-        # All the callback functions should be pure functions with no external scoped dependencies
-        cb_process = Process(target=self.__run_callbacks)
-        cb_process.daemon = True
-        cb_process.start()
-
-        # Do I need to join??
-        cb_process.join()
+            Thread(target=cb, daemon=True).start()
 
 
 # If this module is called as a standalone module to run, then execute the example code
@@ -69,41 +46,55 @@ if __name__ == "__main__":
     from time import sleep
 
     # Create a new data variable and store in the watchData object
-    sensorData = watch(36349)
+    sensorData = Watch(36349)
     # The data stored in the object can only be accessed via the get method
     print(sensorData.get())
 
     # Below are 3 different callbacks that should run when the data changes
+
     def hi():
+        sleep(4)
         print('hello world')
 
-    def hi2():
-        print('hello')
-
-    def hi3():
-        print('world')
-
-        # Add the callbacks to the object
+    # Add the callbacks to the object
     sensorData.addListener(hi)
-    sensorData.addListener(hi2)
-    sensorData.addListener(hi3)
+
+    def chicken():
+        print('Inner func as event handler')
+    sensorData.addListener(chicken)
 
     # Add a time delay to simulate real life operations
-    sleep(2)
+    sleep(1.4)
     # Update the data in the object, this will cause all the callbacks to be called.
     sensorData.set(5)
     # Print out the updated value stored in the object.
     print(sensorData.get())
 
     # Add a time delay to simulate real life operations
-    sleep(2)
+    sleep(1.4)
     # Update the data in the object, this will cause all the callbacks to be called.
     sensorData.set(5)
     # Print out the updated value stored in the object.
     print(sensorData.get())
 
-    while True:
-        pass
+    sleep(1.4)
+
+    # Using __ double underscore to hide the attribute through attribute name mangling, to prevent user from directly modifying it.
+    # print(sensorData.__cbs)  # Output: Err: no attr.
+    # print(sensorData._Watch__cbs) # Output: [the callback functions, ...]
+
+    # The enumerate staticmethod returns a list of thread names of all the threads that are still alive.
+    # print(threading.enumerate())
+
+    # Function that waits for all the daemon threads to end by calling join method on them.
+    def daemon_thread_join():
+        # Wait for all daemonic threads to end before ending the main thread, which will kill any still-alive daemonic threads.
+        for thread in threading.enumerate():
+            if thread.daemon:
+                thread.join()
+            
+    daemon_thread_join()
+
 
     """ The first time u "set" a value, or should I say, watch the value, nothing happens at all. No callback, nothing.
         However when u set the variable with the exact same value, it still runs all the callbacks. Is this good or is this bad?
