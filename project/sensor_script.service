@@ -1,0 +1,33 @@
+# Store this unit file in =>  /etc/systemd/system/
+
+[Unit]
+Description=Pi Smart Home System
+Documentation=https://github.com/Jaimeloeuf/IOTP
+# Only run the service after a multi user environment is available
+After=multi-user.target
+
+[Service]
+# Idle type delays the actual execution of the service binary until all jobs are finished, avoiding mixed status output with other shell services.
+Type=idle
+# The process started with ExecStart will be the main process of the service.
+ExecStart=/usr/bin/python /home/pi/Documents/PiOTP
+# Make the system always restart the service when stopped for whatever reasons
+Restart=always
+
+[Install]
+# Alternative name used to start the service
+Alias=PiOTP
+# A list of units that weakly depend on the unit. When this unit is enabled, the units listed below gain a Want dependency on the unit.
+WantedBy=multi-user.target
+
+
+# THe exec start should be changed to use python3?
+# Get the full path of the program
+# Since currently there is 2 version of code on the pi, Delete one pls
+
+# Use below command to give the file the right permissions
+# chmod 664 /etc/systemd/system/PiOTP.service
+
+# Below command will be used to start the service as a daemon
+# sudo systemctl daemon-reload
+# sudo systemctl enable sample.service

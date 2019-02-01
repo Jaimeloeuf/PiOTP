@@ -5,16 +5,16 @@ Module Desciption:
     User can pub a message to ask the pi_controller to pub a message about the current state.
 """
 
-# Dependencies
 # MQTT Client lib
-# from mqtt import pub, sub, set_broker, set_topic
 from JQTT import pub, sub, set_broker, set_topic
 # Get the AC controller from the ac module.
 from ac import ac
+# A data watcher using the observer pattern
 from data_watcher import watch
 # from BME import bme as BME
 # Import the setInterval class from JSutils package
 from JSutils import setInterval
+
 
 """ Global Variables: """
 # Create a new global variable to store sensorData with a initial state of None using the watch class.
@@ -22,13 +22,16 @@ sensorData = watch(None)
 # Create a new global variable to store interval time between calls to update the sensor data.
 intervalTime = watch(30)  # Initial value of 30 seconds intervals
 
+
 # Function used to publish the new time.  -->  USe a decorator instead.
 def func():
     set_topic('new interval time', 'p')
     pub(intervalTime.get())
 
+
 # Everytime the interval time is successfully updated, the Pi will produce and publish a new Event.
 intervalTime.addListener(func)
+
 
 # Function that will be called every "interval" to update the sensorData and publish the the data to the Broker
 def readData():
@@ -45,6 +48,7 @@ def readData():
 # Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
 intervalTimerRef = setInterval(intervalTime.get(), readData)
 intervalTimerRef.stop()  # Stop the interval loop
+
 
 # Function to change interval time variable. Interval span can be changed by the User via MQTT
 def setIntervalTime(time):
@@ -97,6 +101,7 @@ def change_mode(mode):
 # GLobal variable to keep track of the threshold value of the highest temperature.
 threshold = None
 
+
 # Callback function that runs everytime the sensorData variable is updated and the pi is currently running on auto mode.
 # Function checks variable against the threshold and change state of AC if needed.
 def auto_cb():
@@ -112,7 +117,6 @@ def auto_cb():
 
 # The below functions are to run as "init" functions when the modes are first set.
 # All they do is clear all the event handlers and attach new handlers for that particular mode.
-
 def mode_auto(state):
     # If this is the current running mode, just wait for new incoming commandss
     # Reference the global variable sensorData
@@ -130,11 +134,12 @@ def mode_auto(state):
         pass
         # Parse the message to determine what it is trying to say
         # Verify that it is a valid message.
-                    # If valid then do it
-                    # else reject the message by publishing a 400 bad request?
+        # If valid then do it
+        # else reject the message by publishing a 400 bad request?
 
         # Make the below into a generator function that I can constantly yield new values out of.
         # The yeild is to pause the execution of the function upon the so called "wait"
+
 
 def mode_man():
     # If this is the current running mode, just wait for new incoming commandss
@@ -149,8 +154,8 @@ def mode_man():
         pass
         # Parse the message to determine what it is trying to say
         # Verify that it is a valid message.
-            # If valid then do it
-            # else reject the message by publishing a 400 bad request?
+        # If valid then do it
+        # else reject the message by publishing a 400 bad request?
 
 
 def mode_timed():
