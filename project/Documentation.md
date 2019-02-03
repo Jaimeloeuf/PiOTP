@@ -1,5 +1,4 @@
-You can only control the aircon by using the same reference to the one ac controller created at the start of the program.
-All modules who import it has access and the ability to control it.
+You can only control the aircon by using the same reference to the one ac controller created at the start of the program. All modules who import it has access and the ability to control it.
 
 ### Control / main modules and functions
 - Server module:
@@ -47,35 +46,27 @@ The topic names are created by its unique name plus the prefix infront of it.
 	prefix = 'IOTP/grp4/channel/'
 
 Command and Action topic is:
-- prefix + 'cact'
+	prefix + 'cact'
 Publishers of this topic:
-- Client application (either native or web)
-- Web Service ??
+	- Client application (either native or web)
+	- Web Service ??
 Consumer of this topic:
-- MQTT client on the Pi subscribes to this data and relays it to the AC controller after authentication
+	- MQTT client on the Pi subscribes to this data and relays it to the AC controller after authentication
 
 Sensor data topic is:
-- prefix + 'sdat'
+	prefix + 'sdat'
 Publishers of this topic:
-- (BME Sensor reader -> Pi -> MQTT Client library) The MQTT client on the Pi publishes data from the sensor reader module
+	- (BME Sensor reader -> Pi -> MQTT Client library) The MQTT client on the Pi publishes data from the sensor reader module
 Consumer of this topic:
-- Web service (for data visualisation)
-- Client application (either native or web)
+	- Web service (for data visualisation)
+	- Client application (either native or web)
 
 
 
 
 
+The reading of data from the sensor is independant of the current mode. A setInterval loop will call the function repeatedly to update the variable. Everytime the variable updates, event handlers or callbackfunctions will be called.
 
-
-
-
-The reading of data from the sensor is independant of the current mode. A setInterval loop will call the
-function repeatedly to update the variable. Everytime the variable updates, event handlers will be called.
-The event handlers are called every single time the set method is called to set a value.
-
-Should I get the event handlers to run in another thread?
-Also should the MQTT work in another background thread?
 
 	So based on the global variable, decide what mode it is operating in,
 	choose a function for that mode, and apply that as a cb to the addlistener for the sensoor data

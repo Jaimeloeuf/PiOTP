@@ -37,3 +37,23 @@ def set_state(set_this, to_this):
         return False
     elif set_this == 'mode':
         ac.set_mode()
+
+
+""" The below will be set by the different modes. Every time the mode changes with
+    a message from MQTT sub, execute/call the init function of that mode. """
+def change_mode(mode):
+    if mode == 'auto':
+        return mode_auto
+    elif mode == 'man':
+        return mode_man
+    elif mode == 'timed':
+        return mode_timed
+    else:
+        # Print/Log error
+        print('Invalid mode is being passed')
+        return False  # Return false to indicate error and operation failure
+
+map = {
+    "mode": change_mode,
+	"time": 
+}

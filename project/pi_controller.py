@@ -18,15 +18,41 @@ from JSutils import setInterval
 
 
 """ Global Variables: """
-# Create a new global variable to store sensorData with a initial state of None using the Watch class.
-sensorData = Watch(None)
-# Create a new global variable to store interval time between calls to update the sensor data.
+# Global variable used to store the current operating state of the Pi. Initially 'manual' mode
+operating_mode = Watch('man')
+# Global variable used to store sensorData wrapped in a Watch Class object.
+sensorData = Watch()
+# Global variable used to store interval time between calls to update the sensor data.
 intervalTime = Watch(30)  # Initial value of 30 seconds intervals
-
+# Global variable holding the reference to the interval loop
+intervalTimerRef = None
+""" Create all the Publisher objects in the Global file scope too """
 # Create a Publisher object for sensor data. Set the publish topic to 'SenD' meaning 'sensor data'
 SensorData_Publisher = Publisher('IOTP/grp4/channel/SenD', on_connect=True, on_publish=True)
 # Create a Publisher object for Interval Time. Set the publish topic to 'IntT' meaning 'Interval Time'
 IntervalTime_Publisher = Publisher('IOTP/grp4/channel/IntT', on_connect=True, on_publish=True)
+
+def parseMsg(msg):
+    # msg is a kv pair, so to check if the key exists first
+    # Use a hashmap?
+    # Unpack the output from splitting the string
+    key, value = msg.split(':')
+    # If the key is valid
+    if map.get(key):
+        # The 'value' stored for this key is another map that stores a list of possible values and their actions
+        map.get(key).get(value)
+        # Returns a function that I call with value
+        map.get(key)(value)
+
+        # If the operation is a success
+        if map.get(key)(value):
+            pass
+        else:
+            pub('ERR: Invalid command')
+    
+
+
+
 
 # Function used to publish the new time.  -->  USe a decorator instead.
 def func():
@@ -52,9 +78,9 @@ def readData():
     # Reference the variable in the global file scope, do I need this? Since I am only calling a method on the object
     global sensorData
     # Read data from sensor and store inside the sensorData object
-    sensorData.set(BME.getData())
+    sensorData(BME.getData())
     # Publish the data to with the pre-defined Publisher
-    SensorData_Publisher.pub(sensorData.value)
+    SensorData_Publisher.pub(sensorData)
 
 
 # Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
@@ -67,53 +93,30 @@ def setIntervalTime(time):
     intervalTime.set(time)
 
 
-
-# The below will be set by the different modes. On setting a new mode, do this
-# Every time there is a new data,
-
-# Function that returns the different functions to run as eventListeners/background-task when a new mode is used
-# Every time the mode changes, execute/call the init function of that mode.
-def change_mode(mode):
-    if mode == 'auto':
-        return mode_auto
-    elif mode == 'man':
-        return mode_man
-    elif mode == 'timed':
-        return mode_timed
-    else:
-        # Print/Log error
-        print('Invalid mode is being passed')
-        return False  # Return false to indicate error and operation failure
-
-
 # GLobal variable to keep track of the threshold value of the highest temperature.
 threshold = None
 
 
-# Callback function that runs everytime the sensorData variable is updated and the pi is currently running on auto mode.
-# Function checks variable against the threshold and change state of AC if needed.
-def auto_cb():
-    global threshold
-    global ac
-    # On the AC if temp exceeds threshold and it is off.
-    if sensorData.value > threshold and ac.state() == 'off':
-        ac.on()
-    # Off the AC if temp does not exceed threshold and it is on.
-    elif ac.state() == 'on':
-        ac.off()
-    
-
-# The below functions are to run as "init" functions when the modes are first set.
-# All they do is clear all the event handlers and attach new handlers for that particular mode.
+""" The below functions are to run as "init" functions when the modes are first set.
+    They will clear all callback functions and attach new ones for that particular mode.
+"""
 def mode_auto(state):
-    # If this is the current running mode, just wait for new incoming commandss
     # Reference the global variable sensorData
     global sensorData
     # Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
-    sensorData.removeListener()
-    # At every interval, the variable is updated and the data is published to the MQTT broker, thus I do not need to publish it again.
-    # The callback passed in to it runs every time the variable is updated whilst in auto mode.
-    sensorData.addListener(auto_cb)
+    sensorData.clearAllListeners()
+
+    """ Definition of all the callback functions / event handlers to be used in auto mode """
+    # Callback function to check variable against threshold and change state of AC if needed
+    def threshold_check(data):
+        global threshold
+        global ac
+        # On the AC if temp exceeds threshold and it is off.
+        if sensorData.value > threshold and ac.state() == 'off':
+            ac.on()
+        # Off the AC if temp does not exceed threshold and it is on.
+        elif ac.state() == 'on':
+            ac.off()
 
     # Below function is called on new command/msg. Function to return this inner function
     def onMessage(msg):
@@ -126,14 +129,16 @@ def mode_auto(state):
         # Make the below into a generator function that I can constantly yield new values out of.
         # The yeild is to pause the execution of the function upon the so called "wait"
 
+    # The callback passed in to it runs every time the variable is set whilst in auto mode.
+    sensorData.on_set += threshold_check
+    # Add the callback function for subscribe
+    sub(onMessage)
 
 def mode_man():
-    # If this is the current running mode, just wait for new incoming commandss
     # Reference the global variable sensorData
     global sensorData
     # Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
-    sensorData.removeListener()
-    # Since at every interval, the variable is updated and the data is published to the MQTT broker, there is no need to do any other thing but wait for commands from MQTT that requests for a ac state change
+    sensorData.clearAllListeners()
 
     # Below function is called on new command/msg. Function to return this inner function
     def onMessage(msg):
@@ -145,11 +150,10 @@ def mode_man():
 
 
 def mode_timed():
-    # If this is the current running mode, just wait for new incoming commands
     # Reference the global variable sensorData
     global sensorData
     # Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
-    sensorData.removeListener()
+    sensorData.clearAllListeners()
     # For the timed mode, listen for this few messages
     # AC state change command
     # Mode change command
