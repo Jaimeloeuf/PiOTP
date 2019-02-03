@@ -5,83 +5,71 @@ Module Desciption:
     User can pub a message to ask the pi_controller to pub a message about the current state.
 """
 
-# MQTT Client lib
-from JQTT import pub, sub, set_broker, set_topic
+# MQTT Client library
+from JQTT import pub, sub, set_broker, set_topic, Publisher
 # Get the AC controller from the ac module.
 from ac import ac
-# A data watcher using the observer pattern
-from data_watcher import watch
+# A data Watcher using the observer pattern
+# from Jevents import Watch
+from Jevents import Watch, wait_for_daemons
 # from BME import bme as BME
 # Import the setInterval class from JSutils package
 from JSutils import setInterval
 
 
 """ Global Variables: """
-# Create a new global variable to store sensorData with a initial state of None using the watch class.
-sensorData = watch(None)
+# Create a new global variable to store sensorData with a initial state of None using the Watch class.
+sensorData = Watch(None)
 # Create a new global variable to store interval time between calls to update the sensor data.
-intervalTime = watch(30)  # Initial value of 30 seconds intervals
+intervalTime = Watch(30)  # Initial value of 30 seconds intervals
 
+# Create a Publisher object for sensor data. Set the publish topic to 'SenD' meaning 'sensor data'
+SensorData_Publisher = Publisher('IOTP/grp4/channel/SenD', on_connect=True, on_publish=True)
+# Create a Publisher object for Interval Time. Set the publish topic to 'IntT' meaning 'Interval Time'
+IntervalTime_Publisher = Publisher('IOTP/grp4/channel/IntT', on_connect=True, on_publish=True)
 
 # Function used to publish the new time.  -->  USe a decorator instead.
 def func():
-    set_topic('new interval time', 'p')
-    pub(intervalTime.get())
-
-
+    IntervalTime_Publisher.pub(f'Interval time successfully updated to: {intervalTime.value}')
 # Everytime the interval time is successfully updated, the Pi will produce and publish a new Event.
-intervalTime.addListener(func)
+intervalTime.on_set(func) # Make this into a decorator of some sort to use the above function
 
-
-# Function that will be called every "interval" to update the sensorData and publish the the data to the Broker
-def readData():
-    # Reference the variable in the global file scope
-    global sensorData
-    # Read data from sensor and store inside the sensorData object
-    sensorData.set(BME.getData())
-    # Set the publish topic to 'send', or 'sensor data'
-    set_topic('send', 'p')
-    # Publish the data to the MQTT Broker
-    pub(sensorData.get())
-
-
-# Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
-intervalTimerRef = setInterval(intervalTime.get(), readData)
-intervalTimerRef.stop()  # Stop the interval loop
-
-
-# Function to change interval time variable. Interval span can be changed by the User via MQTT
-def setIntervalTime(time):
-    intervalTime.set(time)
-
-    # Allow referencing of the global variable
+# Function used to restart the interval loop
+def restart_loop():
+    # Allow referencing of the global variable. Do I need this? Since only method calls are used on the object
     global intervalTimerRef
     # Stop the old interval
     intervalTimerRef.stop()
     # Start a new interval loop and assign it to the same variable
-    intervalTimerRef = setInterval(intervalTime.get(), readData)
-
-    """ TO move this code and the interval time var down below the interval timer ref as python no var hoisting. """
-    """ To implement feature in the ac module to auto pub state change every time. """
-
-    # Publish the message with the newly set intervalTime after everything is done.
-    pub(f'Interval time successfully updated to: {intervalTime.get()}')
+    intervalTimerRef = setInterval(intervalTime.value, readData)
+    IntervalTime_Publisher.pub('Interval Loop has been successfully restarted')
+# Everytime the interval time is successfully updated, Pi_controller needs to restart the loop
+intervalTime.on_set(restart_loop) # Make this into a decorator of some sort to use the above function
 
 
-# There can only be one timerLoop that calls the readData function in the whole running process to prevent data duplication
-# Is there hoisting in python code?
+# Function called every "interval" to update sensorData and publish it to the Broker
+def readData():
+    # Reference the variable in the global file scope, do I need this? Since I am only calling a method on the object
+    global sensorData
+    # Read data from sensor and store inside the sensorData object
+    sensorData.set(BME.getData())
+    # Publish the data to with the pre-defined Publisher
+    SensorData_Publisher.pub(sensorData.value)
 
 
-# Set topic to subscribe to.
-# set_topic("cact", 's')
-# Subscribe to the topic that has been set.
-# sub(parse_payload)
+# Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
+intervalTimerRef = setInterval(intervalTime.value, readData)
+
+
+# Function to change interval time variable. Interval span can be changed by the User via MQTT
+def setIntervalTime(time):
+    # Function will be ran on message received.
+    intervalTime.set(time)
+
 
 
 # The below will be set by the different modes. On setting a new mode, do this
 # Every time there is a new data,
-# sensorData.addListener()
-
 
 # Function that returns the different functions to run as eventListeners/background-task when a new mode is used
 # Every time the mode changes, execute/call the init function of that mode.
@@ -108,12 +96,12 @@ def auto_cb():
     global threshold
     global ac
     # On the AC if temp exceeds threshold and it is off.
-    if sensorData.temp > threshold and ac.state() == 'off':
+    if sensorData.value > threshold and ac.state() == 'off':
         ac.on()
     # Off the AC if temp does not exceed threshold and it is on.
     elif ac.state() == 'on':
         ac.off()
-
+    
 
 # The below functions are to run as "init" functions when the modes are first set.
 # All they do is clear all the event handlers and attach new handlers for that particular mode.
@@ -126,8 +114,6 @@ def mode_auto(state):
     # At every interval, the variable is updated and the data is published to the MQTT broker, thus I do not need to publish it again.
     # The callback passed in to it runs every time the variable is updated whilst in auto mode.
     sensorData.addListener(auto_cb)
-
-    # Should the data_watcher class pass the value of the data to the callback functions too?
 
     # Below function is called on new command/msg. Function to return this inner function
     def onMessage(msg):
@@ -168,3 +154,9 @@ def mode_timed():
     # AC state change command
     # Mode change command
     # Set new time period/new timeout
+
+
+
+
+# Call the wait function to stop main thread from ending before the daemonic threads finnish
+wait_for_daemons() # Blocking call at the end of the main thread execution.
