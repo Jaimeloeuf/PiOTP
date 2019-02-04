@@ -26,39 +26,49 @@ sensorData = Watch()
 intervalTime = Watch(30)  # Initial value of 30 seconds intervals
 # Global variable holding the reference to the interval loop
 intervalTimerRef = None
+# GLobal variable to keep track of the threshold value of the highest temperature.
+threshold = None
 """ Create all the Publisher objects in the Global file scope too """
 # Create a Publisher object for sensor data. Set the publish topic to 'SenD' meaning 'sensor data'
 SensorData_Publisher = Publisher('IOTP/grp4/channel/SenD', on_connect=True, on_publish=True)
 # Create a Publisher object for Interval Time. Set the publish topic to 'IntT' meaning 'Interval Time'
 IntervalTime_Publisher = Publisher('IOTP/grp4/channel/IntT', on_connect=True, on_publish=True)
 
+
 def parseMsg(msg):
-    # msg is a kv pair, so to check if the key exists first
-    # Use a hashmap?
+    # msg is a kv pair, so to check if the key exists first using a dictionary
     # Unpack the output from splitting the string
     key, value = msg.split(':')
+
+    import MQTT_msg_parser as parser
+    commands = parser.commands
     # If the key is valid
-    if map.get(key):
+    if key in commands:
+        
         # The 'value' stored for this key is another map that stores a list of possible values and their actions
-        map.get(key).get(value)
+        # commands.get(key).get(value)
+
         # Returns a function that I call with value
-        map.get(key)(value)
+        commands.get(key)(value)
+        commands[key](value)
 
         # If the operation is a success
-        if map.get(key)(value):
+        if commands.get(key)(value):
             pass
         else:
-            pub('ERR: Invalid command')
+            pub('ERR: Invalid command action.')
+    else:
+        # Key is not a valid command
+        # Should change all the print based debug statements into logging functions.
+        print(f"Invalid command received from MQTT Broker: {key} + {value}")
+        pub('ERR: Invalid command')
     
 
-
-
-
 # Function used to publish the new time.  -->  USe a decorator instead.
-def func():
-    IntervalTime_Publisher.pub(f'Interval time successfully updated to: {intervalTime.value}')
-# Everytime the interval time is successfully updated, the Pi will produce and publish a new Event.
-intervalTime.on_set(func) # Make this into a decorator of some sort to use the above function
+def publish_int_time_change():
+    IntervalTime_Publisher < f'Interval time successfully updated to: {intervalTime.value}'
+
+publish_int_time_change = lambda data: IntervalTime_Publisher < f'Interval time successfully updated to: {data}'
 
 # Function used to restart the interval loop
 def restart_loop():
@@ -68,9 +78,8 @@ def restart_loop():
     intervalTimerRef.stop()
     # Start a new interval loop and assign it to the same variable
     intervalTimerRef = setInterval(intervalTime.value, readData)
-    IntervalTime_Publisher.pub('Interval Loop has been successfully restarted')
-# Everytime the interval time is successfully updated, Pi_controller needs to restart the loop
-intervalTime.on_set(restart_loop) # Make this into a decorator of some sort to use the above function
+    IntervalTime_Publisher < 'Interval Loop has been successfully restarted'
+
 
 
 # Function called every "interval" to update sensorData and publish it to the Broker
@@ -83,18 +92,6 @@ def readData():
     SensorData_Publisher.pub(sensorData)
 
 
-# Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
-intervalTimerRef = setInterval(intervalTime.value, readData)
-
-
-# Function to change interval time variable. Interval span can be changed by the User via MQTT
-def setIntervalTime(time):
-    # Function will be ran on message received.
-    intervalTime.set(time)
-
-
-# GLobal variable to keep track of the threshold value of the highest temperature.
-threshold = None
 
 
 """ The below functions are to run as "init" functions when the modes are first set.
@@ -135,6 +132,7 @@ def mode_auto(state):
     sub(onMessage)
 
 def mode_man():
+    """ Initialization function for the manual operating mode """
     # Reference the global variable sensorData
     global sensorData
     # Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
@@ -160,7 +158,34 @@ def mode_timed():
     # Set new time period/new timeout
 
 
+# Running code in the last block to make sure all funcs and vars are defined prior to use.
+if __name__ == "__main__":
+    # Only run main code if module called as the program entry point.
 
 
-# Call the wait function to stop main thread from ending before the daemonic threads finnish
-wait_for_daemons() # Blocking call at the end of the main thread execution.
+    # Everytime the interval time is successfully updated, the Pi will produce and publish a new Event.
+    intervalTime.on_set += func # Make this into a decorator of some sort to use the above function
+    # Everytime the interval time is successfully updated, Pi_controller needs to restart the loop
+    intervalTime.on_set += restart_loop # Make this into a decorator of some sort to use the above function
+    
+
+
+    # Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
+    intervalTimerRef = setInterval(intervalTime.value, readData)
+
+
+    """ Attach callback functions defined above to the interval time variable
+    
+        Create a subscription to the 'Commands' topic:
+        Attach the parse message functions inside the other module as Callback to the subscription
+
+        Call the manual mode to be initialized and then wait....	
+    """
+
+
+    # Start the manual mode as the default mode
+    mode_man()
+
+    # Do nothing, pause and wait for events to happen.
+    # Call the wait function to stop main thread from ending before the daemonic threads finnish
+    wait_for_daemons() # Blocking call at the end of the main thread execution.

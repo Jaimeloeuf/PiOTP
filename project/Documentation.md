@@ -1,17 +1,21 @@
 You can only control the aircon by using the same reference to the one ac controller created at the start of the program. All modules who import it has access and the ability to control it.
 
-### Control / main modules and functions
-- Server module:
-	This module contains the Flask server, that is 'physical server' agnostic, and can run both on the Pi
-	as a seperate process, or on an external VPS.
+### Main modules and their functions
 - pi_controller module:
 	This module is the 'glue' code that acts as the main control software on the Pi.
-	It will act as the intermediary code on the Pi between the BME sensor controller, the AC controller and
-	the MQTT Client connections to the broker.
+	It will act as the intermediary code on the Pi between the BME sensor controller,
+	the AC controller and the MQTT Client connections to the broker.
+- Server package:
+	This module contains the Flask server, that is 'physical server' agnostic, and can run both
+	on the Pi as a seperate process, or on an external VPS.
 
 ### Utilities libraries and modules
-- MQTT module:
+- JQTT package:
 	A simple wrapper library/module over the single ended pub and sub actions provided by the paho MQTT package.
+- Jevents package:
+	A simple Events and Data observer library.
+- JSutils package:
+	A simple library that implements certain native JS features such as setInterval.
 - ac module:
 	Defines and exposes the AC controller object and its methods, for us to set AC state.
 - BME module:
@@ -22,6 +26,7 @@ You can only control the aircon by using the same reference to the one ac contro
 - rp: raspberry pi
 - ac: aircon
 - bz: buzzer
+- btn: button
 
 #### So what is the use case scenario?
 1. Manual mode (Use phone to turn on and off the air con remotely)
@@ -40,42 +45,32 @@ You can only control the aircon by using the same reference to the one ac contro
     3. Set a "timezone" thing, so that the auto mode is only activated when it is in the current time now.
 
 
-### Topics used in the Broker, and also the default Topics inside the MQTT library
-
+### Topics used in the Broker
 The topic names are created by its unique name plus the prefix infront of it.
 	prefix = 'IOTP/grp4/channel/'
 
-Command and Action topic is:
+- Command and Action topic is:
 	prefix + 'cact'
-Publishers of this topic:
-	- Client application (either native or web)
-	- Web Service ??
-Consumer of this topic:
-	- MQTT client on the Pi subscribes to this data and relays it to the AC controller after authentication
+	Publishers of this topic:
+		- Client application (either native or web)
+		- Web Service ??
+	Consumer of this topic:
+		- MQTT client on the Pi subscribes to this data and relays it to the AC controller after authentication
 
-Sensor data topic is:
+- Sensor data topic is:
 	prefix + 'sdat'
-Publishers of this topic:
-	- (BME Sensor reader -> Pi -> MQTT Client library) The MQTT client on the Pi publishes data from the sensor reader module
-Consumer of this topic:
-	- Web service (for data visualisation)
-	- Client application (either native or web)
-
+	Publishers of this topic:
+		- (BME Sensor reader -> Pi -> MQTT Client library) The MQTT client on the Pi publishes data from the sensor reader module
+	Consumer of this topic:
+		- Web service (for data visualisation)
+		- Client application (either native or web)
 
 
 
 
 The reading of data from the sensor is independant of the current mode. A setInterval loop will call the function repeatedly to update the variable. Everytime the variable updates, event handlers or callbackfunctions will be called.
-
-
-	So based on the global variable, decide what mode it is operating in,
-	choose a function for that mode, and apply that as a cb to the addlistener for the sensoor data
-	when the variable itself is updated, use a event and callback to change the callback function of the sensor data
-	To set a new cb function, use a method to either clear all listeners or remove last listener on the stack,
-	before setting the new cb into it.
-	
-
-	Make everything into data that is watched so everything will be like node js events
+A global variable will maintain 'state'/record of the current operating mode.
+Make everything into data that is watched so everything will be like node js events
 	- Like the brokers and the topics should also be watched so when anything changes, there
 	can be event handlers, so you no longer need to set the publisher and broker every single time before publishing data
 	when the sensordata changes.
@@ -112,12 +107,13 @@ Timezone:
 	Timer object running, cos the AC is set to on, but with a timeout to off it.
 
 
-	Implement the watch var class to the AC controller.
-
 
 Everytime AC state changes, the pi_controller will publish by MQTT to the 'ac_state' topic.
-====================================================================================================================================
 
+
+
+
+====================================================================================================================================
 	List of possible valid messages that will be received from the MQTT broker
 
 Should I make all of the incoming messages url encoded? So I can just use any library or smth to parse
@@ -170,3 +166,16 @@ In timed mode, the pi_controller will constantly wait for 2 different timed mode
 
 mode is basically choosing which "pi controller" to use to control the pi's ac
 ^ Somewhat true
+
+
+
+=============================================================================
+#### Misc Info:
+On using JavaScript in python directly using JS eval packages:
+- These can be used to implement the functions that I rewrote in native Python in the JSutils library, but did not due to the need of including additional dependencies and bloat.
+	- [PyMiniRacer](https://github.com/sqreen/PyMiniRacer)
+	- [Js2Py](https://pypi.org/project/Js2Py/)
+	
+
+
+Define all the global variable and functions first. Then at the bottom have a main function that uses them in one go... This means that I can import functions from outside modules

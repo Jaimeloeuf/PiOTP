@@ -43,17 +43,44 @@ def set_state(set_this, to_this):
     a message from MQTT sub, execute/call the init function of that mode. """
 def change_mode(mode):
     if mode == 'auto':
-        return mode_auto
+        return mode_auto()
     elif mode == 'man':
-        return mode_man
+        return mode_man()
     elif mode == 'timed':
-        return mode_timed
+        return mode_timed()
     else:
         # Print/Log error
         print('Invalid mode is being passed')
         return False  # Return false to indicate error and operation failure
 
-map = {
+def ac_state(state):
+    if mode == 'on':
+        return mode_auto()
+    elif mode == 'off':
+        return mode_man()
+    elif mode == 'on x':
+        # Where x is the time to be on for
+        return mode_timed()
+    else:
+        # Print/Log error
+        print('Invalid AC state received')
+        # Return false to indicate error and operation failure
+        return False
+
+
+# Function to change interval time variable. Interval span can be changed by the User via MQTT
+def setIntervalTime(time):
+    # Function will be ran on message received.
+    intervalTime.set(time)
+
+
+dispatch = {
     "mode": change_mode,
-	"time": 
+    "ac": ac_state,
+    "interval time" setIntervalTime,
+    # "time": 
 }
+
+if command in dispatch:
+    # Either return it or respond to it.
+    return dispatch[command](args)
