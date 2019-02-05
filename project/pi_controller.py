@@ -35,6 +35,10 @@ SensorData_Publisher = Publisher('IOTP/grp4/channel/SenD', on_connect=True, on_p
 IntervalTime_Publisher = Publisher('IOTP/grp4/channel/IntT', on_connect=True, on_publish=True)
 
 
+# When the mode is changed, call the init switcher function.
+operating_mode.on_set
+operating_mode.on_change
+
 def parseMsg(msg):
     # msg is a kv pair, so to check if the key exists first using a dictionary
     # Unpack the output from splitting the string
@@ -164,7 +168,7 @@ if __name__ == "__main__":
 
 
     # Everytime the interval time is successfully updated, the Pi will produce and publish a new Event.
-    intervalTime.on_set += func # Make this into a decorator of some sort to use the above function
+    intervalTime.on_set += restart_loop # Make this into a decorator of some sort to use the above function
     # Everytime the interval time is successfully updated, Pi_controller needs to restart the loop
     intervalTime.on_set += restart_loop # Make this into a decorator of some sort to use the above function
     

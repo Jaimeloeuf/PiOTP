@@ -8,9 +8,10 @@ from ac import ac
 btn = Button(pin=23, pull_up=True)
 
 def on_press():
-	# Function that will toggle the state of the AC
-	ac.state()
-	pass
+	# Function to toggle state of AC module.
+	ac.toggle()
+	# Change the operating mode to manual mode too.
+	mode
 
 # Setting event listeners for Button input change
 btn.when_pressed = on_press
