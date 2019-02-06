@@ -6,7 +6,7 @@ Module Desciption:
 """
 
 # MQTT Client library
-from JQTT import pub, sub, set_broker, set_topic, Publisher
+from JQTT import pub, sub, set_broker, set_topic, Publisher, Subscription
 # Get the AC controller from the ac module.
 from ac import ac
 # A data Watcher using the observer pattern
@@ -18,8 +18,8 @@ from JSutils import setInterval
 
 
 """ Global Variables: """
-# Global variable used to store the current operating state of the Pi. Initially 'manual' mode
-operating_mode = Watch('man')
+# Global variable used to store the current operating state of the Pi.
+operating_mode = Watch()
 # Global variable used to store sensorData wrapped in a Watch Class object.
 sensorData = Watch()
 # Global variable used to store interval time between calls to update the sensor data.
@@ -28,45 +28,130 @@ intervalTime = Watch(30)  # Initial value of 30 seconds intervals
 intervalTimerRef = None
 # GLobal variable to keep track of the threshold value of the highest temperature.
 threshold = None
+
 """ Create all the Publisher objects in the Global file scope too """
 # Create a Publisher object for sensor data. Set the publish topic to 'SenD' meaning 'sensor data'
 SensorData_Publisher = Publisher('IOTP/grp4/channel/SenD', on_connect=True, on_publish=True)
 # Create a Publisher object for Interval Time. Set the publish topic to 'IntT' meaning 'Interval Time'
 IntervalTime_Publisher = Publisher('IOTP/grp4/channel/IntT', on_connect=True, on_publish=True)
+# Create a Publisher object for all the Error Events and its messages
+ErrorPublisher = Publisher('IOTP/grp4/channel/error', on_connect=True)
+# Make a Subscription to the Command topic with the Default handler for the on_connect event used
+command_pipe = Subscription('IOTP/grp4/channel/cmnd', on_connect=True)
 
 
-# When the mode is changed, call the init switcher function.
-operating_mode.on_set
-operating_mode.on_change
+
+
+
+
+
+""" Every time the mode changes with, execute/call the init function of that mode. """
+# Callback function that runs when operating mode changes
+def change_mode(mode):
+    if mode == 'auto':
+        return mode_auto()
+    elif mode == 'man':
+        return mode_man()
+    elif mode == 'timed':
+        return mode_timed()
+    else:
+        # Create the error message
+        Err_Msg = f"Invalid mode is being passed: {mode}"
+        # Publish the error message
+        ErrorPublisher < Err_Msg
+        # Print/Log error
+        print(Err_Msg)
+        # Return false to indicate error and operation failure
+        return False
+
+# Command function that runs when command received from command pipeline is 'ac'
+def ac_state(state):
+    if state == 'on':
+        return ac.on()
+    elif state == 'off':
+        return ac.off()
+    elif state == 'on x':
+        # Where x is the time to be on for
+        return ac.on(x)
+    else:
+        # Print/Log error
+        print('Invalid AC state received')
+        # Return false to indicate error and operation failure
+        return False
+
+
+# Function to change interval time variable. Interval span can be changed by the User via MQTT
+def setIntervalTime(time):
+    # Function will be ran on message received.
+    intervalTime.set(time)
+
+
+# Dictionary that holds all the functions for the given commands
+dispatch = {
+    "mode": change_mode,
+    "ac": ac_state,
+    "interval time": setIntervalTime
+    # "time": 
+}
+
+
+# Function used to do a basic clean on strings for further processing
+def clean_string(str):
+    # Strip all the white spaces
+    if isinstance(str, list):
+        for index, item in enumerate(str):
+            str[index] = item.strip()
+        return str
+    else:
+        return str.strip()
+
 
 def parseMsg(msg):
-    # msg is a kv pair, so to check if the key exists first using a dictionary
-    # Unpack the output from splitting the string
-    key, value = msg.split(':')
-
-    import MQTT_msg_parser as parser
-    commands = parser.commands
-    # If the key is valid
-    if key in commands:
-        
-        # The 'value' stored for this key is another map that stores a list of possible values and their actions
-        # commands.get(key).get(value)
-
-        # Returns a function that I call with value
-        commands.get(key)(value)
-        commands[key](value)
-
-        # If the operation is a success
-        if commands.get(key)(value):
-            pass
-        else:
-            pub('ERR: Invalid command action.')
-    else:
-        # Key is not a valid command
-        # Should change all the print based debug statements into logging functions.
-        print(f"Invalid command received from MQTT Broker: {key} + {value}")
-        pub('ERR: Invalid command')
+    # msg are concatenations of kv pair(s)
+    # Seperate the kv pairs first
+    kv_pairs = msg.split(';')
+    # Clean and format the input
+    kv_pairs = clean_string(kv_pairs)
     
+    # Loop through all the key value pairs
+    for kv in kv_pairs:
+        # Unpack the output from splitting the string as command and its arguements
+        command, args = kv.split(':')
+
+        # Check if key exists in the dictionary first
+        if command in dispatch:
+            # Either return it or respond to it.
+            return dispatch[command](args)
+
+            # If the operation is a success
+            
+            pub(f"Invalid command received from MQTT Broker: {command} + {args}")
+        else:
+            # Key is not a valid command
+            # Create the error message
+            Err_Msg = f"Invalid command received from MQTT Broker: {command} + {args}"
+            # Publish the error to the error topic
+            ErrorPublisher < Err_Msg
+            # Print/Log error
+            print(Err_Msg)
+            # Return false to indicate error and operation failure
+            return False
+
+
+parseMsg('mode:man; ac:on')
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Function used to publish the new time.  -->  USe a decorator instead.
 def publish_int_time_change():
@@ -93,31 +178,34 @@ def readData():
     # Read data from sensor and store inside the sensorData object
     sensorData(BME.getData())
     # Publish the data to with the pre-defined Publisher
-    SensorData_Publisher.pub(sensorData)
+    SensorData_Publisher < sensorData
 
-
+# Look at the below module to see how to use
+import json
 
 
 """ The below functions are to run as "init" functions when the modes are first set.
     They will clear all callback functions and attach new ones for that particular mode.
 """
-def mode_auto(state):
+def mode_auto():
     # Reference the global variable sensorData
     global sensorData
     # Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
     sensorData.clearAllListeners()
 
-    """ Definition of all the callback functions / event handlers to be used in auto mode """
     # Callback function to check variable against threshold and change state of AC if needed
     def threshold_check(data):
-        global threshold
         global ac
         # On the AC if temp exceeds threshold and it is off.
-        if sensorData.value > threshold and ac.state() == 'off':
-            ac.on()
+        if sensorData > threshold:
+            if ac == 'off':
+                ac.on()
         # Off the AC if temp does not exceed threshold and it is on.
-        elif ac.state() == 'on':
+        elif ac == 'on':
             ac.off()
+
+    # The callback passed in to it runs every time the variable is changed whilst in auto mode.
+    sensorData.on_change += threshold_check
 
     # Below function is called on new command/msg. Function to return this inner function
     def onMessage(msg):
@@ -129,9 +217,6 @@ def mode_auto(state):
 
         # Make the below into a generator function that I can constantly yield new values out of.
         # The yeild is to pause the execution of the function upon the so called "wait"
-
-    # The callback passed in to it runs every time the variable is set whilst in auto mode.
-    sensorData.on_set += threshold_check
     # Add the callback function for subscribe
     sub(onMessage)
 
@@ -156,39 +241,57 @@ def mode_timed():
     global sensorData
     # Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
     sensorData.clearAllListeners()
+
+    # On the ac for set amount of time.
+    ac.on(x)
+
     # For the timed mode, listen for this few messages
     # AC state change command
     # Mode change command
     # Set new time period/new timeout
 
 
-# Running code in the last block to make sure all funcs and vars are defined prior to use.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Only run main code if module called as the program entry point.
+# Code in the last block to make sure all funcs and vars are defined prior to use.
 if __name__ == "__main__":
-    # Only run main code if module called as the program entry point.
-
-
-    # Everytime the interval time is successfully updated, the Pi will produce and publish a new Event.
-    intervalTime.on_set += restart_loop # Make this into a decorator of some sort to use the above function
-    # Everytime the interval time is successfully updated, Pi_controller needs to restart the loop
-    intervalTime.on_set += restart_loop # Make this into a decorator of some sort to use the above function
-    
-
-
-    # Call the readData function every "intervalTime" to update the sensor Data and store the reference to this loop in a global variable
-    intervalTimerRef = setInterval(intervalTime.value, readData)
-
-
     """ Attach callback functions defined above to the interval time variable
     
-        Create a subscription to the 'Commands' topic:
-        Attach the parse message functions inside the other module as Callback to the subscription
-
-        Call the manual mode to be initialized and then wait....	
     """
+    # When the mode is changed, call the init switcher function.
+    operating_mode.on_change += change_mode
+
+    # Everytime the interval time is set, the Pi will produce and publish a new Event.
+    intervalTime.on_set += restart_loop
+
+    # Attach the parseMsg function as the callback handler for on_message events from the command pipeline
+    command_pipe.on_message += parseMsg
+    
 
 
-    # Start the manual mode as the default mode
-    mode_man()
+
+
+
+    # Start the manual mode as the initial default mode, by setting the mode to 'man'
+    operating_mode < 'man'
+
+    # Start the loop to call readData function every "intervalTime" to update sensor Data on the global loop reference
+    intervalTimerRef = setInterval(intervalTime.value, readData)
 
     # Do nothing, pause and wait for events to happen.
     # Call the wait function to stop main thread from ending before the daemonic threads finnish
