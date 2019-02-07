@@ -3,6 +3,8 @@ Module Desciption:
     This module is the code that will be running on the Pi to glue together the operations
     of the MQTT Client lib, the AC controller and the BME sensor interface.
     User can pub a message to ask the pi_controller to pub a message about the current state.
+
+    Diff between pi controller 1 and 2 is that 2 does not have a timed mode.
 """
 
 # MQTT Client library
@@ -41,21 +43,14 @@ ErrorPublisher = Publisher('IOTP/grp4/channel/error', on_connect=True)
 # Make a Subscription to the Command topic with the Default handler for the on_connect event used
 command_pipe = Subscription('IOTP/grp4/channel/cmnd', on_connect=True)
 
-timed
 
 
-
-
-
-""" Every time the mode changes with, execute/call the init function of that mode. """
 # Callback function that runs the operating mode initialization functions when mode changes
 def change_mode(mode):
     if mode == 'auto':
         mode_auto()
     elif mode == 'man':
         mode_man()
-    elif mode == 'timed':
-        mode_timed(args)
     else:
         # Create the error message
         Err_Msg = f"Invalid mode is being passed: {mode}"
@@ -70,15 +65,13 @@ def change_mode(mode):
     # Return True to indicate operation success
     return True
 
-# Command function that runs when command received from command pipeline is 'ac'
+
+# Callback function that runs when command received from command pipeline is 'ac'
 def ac_state(state):
     if state == 'on':
         ac.on()
     elif state == 'off':
         ac.off()
-    elif state == 'on x':
-        # Where x is the time to be on for
-        ac.on(x)
     else:
         # Print/Log error
         print('Invalid AC state received')
@@ -88,59 +81,37 @@ def ac_state(state):
     return False
 
 
-# Function to change interval time variable via MQTT
+# Callback function to change interval time variable when command is intervalTime
 def setIntervalTime(time):
     # Set the interval time and let the callback functions deal with the rest
     intervalTime < time
-
-
-# Callback function that deals with a time input from the MQTT broker
-def set_time(time):
-    # Check the current operating mode.
-    # If the mode is man
-    if operating_mode == 'man':
-        # Change the mode to timed and pass in the timme
-        operating_mode
-    elif state == 'timed':
-        # If the mode is 'timed' then restart the timer countdown with the new time
-        
-    elif state == 'on x':
-        # Where x is the time to be on for
-        ac.on(x)
-    else:
-        # Print/Log error
-        print('Invalid AC state received')
-        # Return false to indicate error and operation failure
-        return False
-    # Return True to indicate operation success
-    return False
-
 
 
 # Dictionary that holds all the functions for the given commands
 dispatch = {
     "mode": change_mode,
     "ac": ac_state,
-    "interval time": setIntervalTime
-    "time": set_time
+    "intervalTime": setIntervalTime
 }
 
 
-# Function used to do a basic clean on strings for further processing
-def clean_string(str):
-    # Strip all the white spaces
-    if isinstance(str, list):
-        for index, item in enumerate(str):
-            str[index] = item.strip()
-        return str
-    else:
-        return str.strip()
 
-
+# Callback function used to parse messages/payload from the MQTT broker
 def parseMsg(msg):
     # msg are concatenations of kv pair(s)
     # Seperate the kv pairs first
     kv_pairs = msg.split(';')
+
+    # Inner function for cleaning and formatting strings
+    def clean_string(str):
+        # Strip all the white spaces
+        if isinstance(str, list):
+            for index, item in enumerate(str):
+                str[index] = item.strip()
+            return str
+        else:
+            return str.strip()
+
     # Clean and format the input
     kv_pairs = clean_string(kv_pairs)
     
@@ -169,22 +140,10 @@ def parseMsg(msg):
             return False
 
 
+# Test code
 parseMsg('mode:man; ac:on')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Function used to publish the new time.  -->  USe a decorator instead.
+#  TO attach this to intervalTime on_change
 def publish_int_time_change():
     Event < f'Interval time updated to: {intervalTime}'
 publish_int_time_change = lambda data: Event < f'Interval time successfully updated to: {data}'
@@ -208,13 +167,11 @@ def readData():
     # Publish the data to with the pre-defined Publisher
     SensorData_Publisher < sensorData
 
-# Look at the below module to see how to use
-import json
-
 
 """ The below functions are to run as "init" functions when the modes are first set.
     They will clear all callback functions and attach new ones for that particular mode.
 """
+# Init function for the auto operating mode
 def mode_auto():
     # Reference the global variable sensorData
     global sensorData
@@ -235,70 +192,21 @@ def mode_auto():
     # The callback passed in to it runs every time the variable is changed whilst in auto mode.
     sensorData.on_change += threshold_check
 
-    # Below function is called on new command/msg. Function to return this inner function
-    def onMessage(msg):
-        pass
-        # Parse the message to determine what it is trying to say
-        # Verify that it is a valid message.
-        # If valid then do it
-        # else reject the message by publishing a 400 bad request?
-
-        # Make the below into a generator function that I can constantly yield new values out of.
-        # The yeild is to pause the execution of the function upon the so called "wait"
-
-
+# Init function for the manual operating mode
 def mode_man():
     """ Initialization function for the manual operating mode """
     # Reference the global variable sensorData
     global sensorData
     # Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
     sensorData.clearAllListeners()
-
-    # Below function is called on new command/msg. Function to return this inner function
-    def onMessage(msg):
-        pass
-        # Parse the message to determine what it is trying to say
-        # Verify that it is a valid message.
-        # If valid then do it
-        # else reject the message by publishing a 400 bad request?
-
-
-def mode_timed():
-    # Reference the global variable sensorData
-    global sensorData
-    # Remove all eventHandlers / callbacks first before adding in callbacks for this mode.
-    sensorData.clearAllListeners()
-
-    # On the ac for set amount of time.
-    ac.on(x)
-
-    # For the timed mode, listen for this few messages
-    # AC state change command
-    # Mode change command
-    # Set new time period/new timeout
+    # No callbacks needed as manual mode just waits for input from the MQTT Broker or the Btn
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Only run main code if module called as the program entry point.
-# Code in the last block to make sure all funcs and vars are defined prior to use.
+# This is the program's entry point. In last block to make sure all funcs and vars are defined prior to use
 if __name__ == "__main__":
-    """ Attach callback functions defined above to the interval time variable
-    
+    """ Attach all the callback functions defined above to their
+        respective Events and just wait for the Events to happen.
     """
     # When the mode is changed, call the init switcher function.
     operating_mode.on_change += change_mode
@@ -308,9 +216,6 @@ if __name__ == "__main__":
 
     # Attach the parseMsg function as the callback handler for on_message events from the command pipeline
     command_pipe.on_message += parseMsg
-    
-
-
 
     # Start the manual mode as the initial default mode, by setting the mode to 'man'
     operating_mode < 'man'

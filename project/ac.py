@@ -37,7 +37,7 @@ class acController:
         # Create a instance variable to store Timer Objects
         self.ac_timer = None
         # Create a publisher for the 'ac_state' topic with the Topic prefix.
-        self.__pub = Publisher(('IOTP/grp4/channel/' + 'ac_state'))
+        self.__pub = Publisher(('IOTP/grp4/channel/ac_state'))
 
     # Method to set pin to be connected to the buzzer other than the default one.
     def set_pin(self, pin=27):
