@@ -16,6 +16,7 @@ You can only control the aircon by using the same reference to the one ac contro
 	A simple Events and Data observer library.
 - JSutils package:
 	A simple library that implements certain native JS features such as setInterval.
+
 - ac module:
 	Defines and exposes the AC controller object and its methods, for us to set AC state.
 - BME module:
@@ -29,27 +30,33 @@ You can only control the aircon by using the same reference to the one ac contro
 - btn: button
 
 #### So what is the use case scenario?
-1. Manual mode (Use phone to turn on and off the air con remotely)
-    - Rmb that this means that I would need to control the rasp pi remotely.
-    - Use MQTT without any security for now.
-        - The "server" on the pi subscribes to the MQTT broker's topic,
-        - Listens to commands that will come in.
+1.	Manual mode
+    - Mode that allows user to manually control the AC module using either
+		- A Command from the MQTT broker
+		- Physical push button
 
-2. Auto mode
-    1. Set a "I'm coming home" mode. So just click on this mode before coming home, it will check temp and cool if needed
-    2. "Always auto mode" that will constantly monitor the temp and cool hse if needed
-        - This method means that the rp will be checking the temp every few seconds or mins
-        - ?	determine if the temperature is too high
-        - On ac
-        - : off ac if it was on.
-    3. Set a "timezone" thing, so that the auto mode is only activated when it is in the current time now.
+2.	Auto mode
+    - Constantly monitor the temp and cool hse if needed
+        - The device reads temp on every interval
+        - if the temperature is too high
+			- On ac
+        - Temp not too high
+			- off ac if it was on.
+    - Features currently being worked on:
+		- Set a "timezone" thing, so that the auto mode is only activated when it is in the current time now.
+		- Set a "I'm coming home" mode. So just click on this mode before coming home, it will start the auto mode automatically
+
+3.	Timed mode
+	- On the AC for a set amount of time.
+	- The mode is ran using the command from the MQTT Broker.
+	- Operating mode will change back to manual mode when the AC turns off
 
 
 ### Topics used in the Broker
 The topic names are created by its unique name plus the prefix infront of it.
 	prefix = 'IOTP/grp4/channel/'
 
-- Command and Action topic is:
+- Command and Control topic is:
 	prefix + 'cact'
 	Publishers of this topic:
 		- Client application (either native or web)
