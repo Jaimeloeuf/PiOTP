@@ -8,13 +8,12 @@ Module Desciption:
 """
 
 # MQTT Client library
-from JQTT import pub, sub, set_broker, set_topic, Publisher, Subscription
+from JQTT import Publisher, Subscription
 # Get the AC controller from the ac module.
 from ac import ac
 # A data Watcher using the observer pattern
-# from Jevents import Watch
 from Jevents import Watch, wait_for_daemons
-# from BME import bme as BME
+from bme import get_temp
 # Import the setInterval class from JSutils package
 from JSutils import setInterval
 
@@ -25,7 +24,7 @@ operating_mode = Watch()
 # Global variable used to store sensorData wrapped in a Watch Class object.
 sensorData = Watch()
 # Global variable used to store interval time between calls to update the sensor data.
-intervalTime = Watch(30)  # Initial value of 30 seconds intervals
+intervalTime = Watch(5)  # Initial value of 30 seconds intervals
 # Global variable holding the reference to the interval loop
 intervalTimerRef = None
 # GLobal variable to keep track of the threshold value of the highest temperature.
@@ -53,7 +52,8 @@ def change_mode(mode):
         mode_man()
     else:
         # Create the error message
-        Err_Msg = f"Invalid mode is being passed: {mode}"
+        # Err_Msg = f"Invalid mode is being passed: {mode}"
+        Err_Msg = "Invalid mode is being passed: " + mode
         # Publish the error message
         ErrorPublisher < Err_Msg
         # Print/Log error
@@ -61,7 +61,7 @@ def change_mode(mode):
         # Return false to indicate error and operation failure
         return False
     # If there was no error, publish this change of mode as an event
-    Event < f"Mode: {mode}"
+    Event < ("Mode: " + mode)
     # Return True to indicate operation success
     return True
 
@@ -101,25 +101,22 @@ dispatch = {
 def parseMsg(msg):
     # msg are concatenations of kv pair(s)
     # Seperate the kv pairs first
-    kv_pairs = msg.split(';')
+    # kv_pairs = msg.split(';')
 
     # Inner function for cleaning and formatting strings
-    def clean_string(str):
-        # Strip all the white spaces
-        if isinstance(str, list):
-            for index, item in enumerate(str):
-                str[index] = item.strip()
-            return str
-        else:
-            return str.strip()
+    # def clean_string(str):
+    #     # Strip all the white spaces
+    #     if isinstance(str, list):
+    #         for index, item in enumerate(str):
+    #             str[index] = item.strip()
+    #         return str
+    #     else:
+    #         return str.strip()
 
     # Clean and format the input
-    kv_pairs = clean_string(kv_pairs)
-    
+    # kv_pairs = clean_string(kv_pairs)
     # Loop through all the key value pairs
-    for kv in kv_pairs:
-        # Unpack the output from splitting the string as command and its arguements
-        command, args = kv.split(':')
+    # for kv in kv_pairs:
 
         # # Check if key exists in the dictionary first
         # if command in dispatch:
@@ -145,25 +142,28 @@ def parseMsg(msg):
         #     # Return false to indicate error and operation failure
         #     return False
 
-        # Check if key exists in the dictionary first
-            # Run the command function with the args and check for its return statement
-        if (command in dispatch) and dispatch[command](args):
-                pass
-        else:
-            # Key is not a valid command
-            # Create the error message
-            Err_Msg = f"Invalid command received from MQTT Broker: {command} + {args}"
-            # Publish the error to the error topic
-            ErrorPublisher < Err_Msg
-            # Print/Log error
-            print(Err_Msg)
-            # Return false to indicate error and operation failure
-            return False
+    # Unpack the output from splitting the string as command and its arguements
+    command, args = msg.split(':')
+
+    # Check if key exists in the dictionary first
+        # Run the command function with the args and check for its return statement
+    if (command in dispatch) and dispatch[command](args):
+            pass
+    else:
+        # Key is not a valid command
+        # Create the error message
+        Err_Msg = "Invalid command received from MQTT Broker: " + command + " " + args
+        # Publish the error to the error topic
+        ErrorPublisher < Err_Msg
+        # Print/Log error
+        print(Err_Msg)
+        # Return false to indicate error and operation failure
+        return False
 
 
 def publish_int_time_change():
-    Event < f'Interval time updated to: {intervalTime}'
-publish_int_time_change = lambda data: Event < f'Interval time successfully updated to: {data}'
+    Event < ("Interval time updated to: " + intervalTime)
+# publish_int_time_change = lambda data: Event < f'Interval time successfully updated to: {data}'
 
 # Function used to restart the interval loop
 def restart_loop():
@@ -180,9 +180,9 @@ def readData():
     # Reference the variable in the global file scope, do I need this? Since I am only calling a method on the object
     global sensorData
     # Read data from sensor and store inside the sensorData object
-    sensorData(BME.getData())
+    sensorData(get_temp())
     # Publish the data to with the pre-defined Publisher
-    SensorData_Publisher < sensorData
+    SensorData_Publisher < sensorData.value
 
 
 """ The below functions are to run as "init" functions when the modes are first set.
@@ -199,11 +199,12 @@ def mode_auto():
     def threshold_check(data):
         global ac
         # On the AC if temp exceeds threshold and it is off.
-        if sensorData > threshold:
-            if ac == 'off':
+        # if sensorData > threshold:
+        if sensorData.value > 26.0:
+            if not ac.state:
                 ac.on()
         # Off the AC if temp does not exceed threshold and it is on.
-        elif ac == 'on':
+        elif ac.state:
             ac.off()
 
     # The callback passed in to it runs every time the variable is changed whilst in auto mode.
@@ -234,14 +235,15 @@ if __name__ == "__main__":
     intervalTime.on_change += publish_int_time_change
 
     """ Test code """
-    parseMsg('mode:man; ac:on')
+    # parseMsg('mode:man; ac:on')
 
 
     # Attach the parseMsg function as the callback handler for on_message events from the command pipeline
     command_pipe.on_message += parseMsg
 
     # Start the manual mode as the initial default mode, by setting the mode to 'man'
-    operating_mode < 'man'
+    # operating_mode < 'man'
+    operating_mode < 'auto'
 
     # Start the loop to call readData function every "intervalTime" to update sensor Data on the global loop reference
     intervalTimerRef = setInterval(intervalTime.value, readData)

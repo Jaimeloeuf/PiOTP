@@ -30,7 +30,7 @@ from JQTT import Publisher
 class acController:
     """ Class used to build an AC controller object """
 
-    def __init__(self, pin=27):
+    def __init__(self, pin=25):
         """ Takes in optional input for GPIO Pin to use for the 'AC' module """
         # Call set_pin method to set and use default pin
         self.set_pin(pin)
@@ -40,7 +40,7 @@ class acController:
         self.__pub = Publisher(('IOTP/grp4/channel/ac_state'))
 
     # Method to set pin to be connected to the buzzer other than the default one.
-    def set_pin(self, pin=27):
+    def set_pin(self, pin=25):
         # GPIO pin 27 will be used for Aircon 'relay' by default
         # Create digital output with the LED function using pin input arguement
         self.aircon = LED(pin)
