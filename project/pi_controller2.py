@@ -78,13 +78,15 @@ def ac_state(state):
         # Return false to indicate error and operation failure
         return False
     # Return True to indicate operation success
-    return False
+    return True
 
 
 # Callback function to change interval time variable when command is intervalTime
 def setIntervalTime(time):
     # Set the interval time and let the callback functions deal with the rest
     intervalTime < time
+    # Return True to indicate operation success
+    return True
 
 
 # Dictionary that holds all the functions for the given commands
@@ -93,7 +95,6 @@ dispatch = {
     "ac": ac_state,
     "intervalTime": setIntervalTime
 }
-
 
 
 # Callback function used to parse messages/payload from the MQTT broker
@@ -120,14 +121,34 @@ def parseMsg(msg):
         # Unpack the output from splitting the string as command and its arguements
         command, args = kv.split(':')
 
-        # Check if key exists in the dictionary first
-        if command in dispatch:
-            # Either return it or respond to it.
-            return dispatch[command](args)
+        # # Check if key exists in the dictionary first
+        # if command in dispatch:
+        #     # Run the command function with the args and check for its return statement
+        #     if not dispatch[command](args):
+        #         # If the operation failed
+        #         # Create the error message
+        #         Err_Msg = f"Invalid command received from MQTT Broker: {command} + {args}"
+        #         # Publish the error to the error topic
+        #         ErrorPublisher < Err_Msg
+        #         # Print/Log error
+        #         print(Err_Msg)
+        #         # Return false to indicate error and operation failure
+        #         return False
+        # else:
+        #     # Key is not a valid command
+        #     # Create the error message
+        #     Err_Msg = f"Invalid command received from MQTT Broker: {command} + {args}"
+        #     # Publish the error to the error topic
+        #     ErrorPublisher < Err_Msg
+        #     # Print/Log error
+        #     print(Err_Msg)
+        #     # Return false to indicate error and operation failure
+        #     return False
 
-            # If the operation is a success
-            
-            pub(f"Invalid command received from MQTT Broker: {command} + {args}")
+        # Check if key exists in the dictionary first
+            # Run the command function with the args and check for its return statement
+        if (command in dispatch) and dispatch[command](args):
+                pass
         else:
             # Key is not a valid command
             # Create the error message
@@ -140,10 +161,6 @@ def parseMsg(msg):
             return False
 
 
-# Test code
-parseMsg('mode:man; ac:on')
-
-#  TO attach this to intervalTime on_change
 def publish_int_time_change():
     Event < f'Interval time updated to: {intervalTime}'
 publish_int_time_change = lambda data: Event < f'Interval time successfully updated to: {data}'
@@ -213,6 +230,12 @@ if __name__ == "__main__":
 
     # Everytime the interval time is set, the Pi will produce and publish a new Event.
     intervalTime.on_set += restart_loop
+    # Everytime the interval times
+    intervalTime.on_change += publish_int_time_change
+
+    """ Test code """
+    parseMsg('mode:man; ac:on')
+
 
     # Attach the parseMsg function as the callback handler for on_message events from the command pipeline
     command_pipe.on_message += parseMsg

@@ -4,6 +4,8 @@ from db import write
 
 """ Callback function definitions """
 def on_data(data):
+	# Data comes in the form of a bytes array, to convert to utf 8
+	data = data.decode()
     # Add data into the Sensor Data DB
     write(data, 'SensorDB')
 

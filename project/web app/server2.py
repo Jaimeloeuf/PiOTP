@@ -28,9 +28,6 @@ app = Flask(__name__)
 @app.route('/home', methods=['GET'])
 def home_page():
     # Check if the user logged in already by looking for a valid JWT.
-
-    # If the user is not logged in
-    redirect(url_for('login'))
     # Use put user data into home page and send it back
     return render_template('./index.html', name=name)
 
