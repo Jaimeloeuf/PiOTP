@@ -98,50 +98,53 @@ dispatch = {
 
 
 # Callback function used to parse messages/payload from the MQTT broker
+def parseMsg2(msg):
+    """
+    msg are concatenations of kv pair(s)
+    Seperate the kv pairs first
+    kv_pairs = msg.split(';')
+
+    Inner function for cleaning and formatting strings
+    def clean_string(str):
+        # Strip all the white spaces
+        if isinstance(str, list):
+            for index, item in enumerate(str):
+                str[index] = item.strip()
+            return str
+        else:
+            return str.strip()
+
+    Clean and format the input
+    kv_pairs = clean_string(kv_pairs)
+    Loop through all the key value pairs
+    for kv in kv_pairs:
+
+        # Check if key exists in the dictionary first
+        if command in dispatch:
+            # Run the command function with the args and check for its return statement
+            if not dispatch[command](args):
+                # If the operation failed
+                # Create the error message
+                Err_Msg = f"Invalid command received from MQTT Broker: {command} + {args}"
+                # Publish the error to the error topic
+                ErrorPublisher < Err_Msg
+                # Print/Log error
+                print(Err_Msg)
+                # Return false to indicate error and operation failure
+                return False
+        else:
+            # Key is not a valid command
+            # Create the error message
+            Err_Msg = f"Invalid command received from MQTT Broker: {command} + {args}"
+            # Publish the error to the error topic
+            ErrorPublisher < Err_Msg
+            # Print/Log error
+            print(Err_Msg)
+            # Return false to indicate error and operation failure
+            return False """
+
+# Callback function used to parse messages/payload from the MQTT broker
 def parseMsg(msg):
-    # msg are concatenations of kv pair(s)
-    # Seperate the kv pairs first
-    # kv_pairs = msg.split(';')
-
-    # Inner function for cleaning and formatting strings
-    # def clean_string(str):
-    #     # Strip all the white spaces
-    #     if isinstance(str, list):
-    #         for index, item in enumerate(str):
-    #             str[index] = item.strip()
-    #         return str
-    #     else:
-    #         return str.strip()
-
-    # Clean and format the input
-    # kv_pairs = clean_string(kv_pairs)
-    # Loop through all the key value pairs
-    # for kv in kv_pairs:
-
-        # # Check if key exists in the dictionary first
-        # if command in dispatch:
-        #     # Run the command function with the args and check for its return statement
-        #     if not dispatch[command](args):
-        #         # If the operation failed
-        #         # Create the error message
-        #         Err_Msg = f"Invalid command received from MQTT Broker: {command} + {args}"
-        #         # Publish the error to the error topic
-        #         ErrorPublisher < Err_Msg
-        #         # Print/Log error
-        #         print(Err_Msg)
-        #         # Return false to indicate error and operation failure
-        #         return False
-        # else:
-        #     # Key is not a valid command
-        #     # Create the error message
-        #     Err_Msg = f"Invalid command received from MQTT Broker: {command} + {args}"
-        #     # Publish the error to the error topic
-        #     ErrorPublisher < Err_Msg
-        #     # Print/Log error
-        #     print(Err_Msg)
-        #     # Return false to indicate error and operation failure
-        #     return False
-
     # Unpack the output from splitting the string as command and its arguements
     command, args = msg.split(':')
 

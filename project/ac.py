@@ -19,7 +19,7 @@ from JQTT import Publisher
     3. Off ac
         ac.off()
     4. On ac for a set time asynchrounously.
-        ac.on(1000)
+        ac.on(10)
     5. Toggle the AC's state
         ac.toggle()
     6. Get the current state of the AC module as a Boolean value
@@ -44,11 +44,13 @@ class acController:
         # GPIO pin 27 will be used for Aircon 'relay' by default
         # Create digital output with the LED function using pin input arguement
         self.aircon = LED(pin)
+        # Publish the pin number after setting it
+        self.__pub < f'PIN: {pin}'
 
     # Method to get current state of the AC. Can be used as a property
     @property
     def state(self):
-        # Strictly returns only a value of bool type
+        # Returns a value of bool type
         return self.aircon.is_active
 
     # Method to on the aircon, assuming that the aircon is active high output.
@@ -61,8 +63,7 @@ class acController:
         # On the aircon if not on already
         if not self.state:
             self.aircon.on()
-            # Publish the new state using the magic method
-            self.__pub < 'on'
+            self.publish_state()
 
         # If an on time is specified, wait asynchronously and off the aircon
         if time_on:
@@ -78,8 +79,7 @@ class acController:
         # Off the aircon if currently on
         if self.state:
             self.aircon.off()
-            # Publish the new state using the magic method
-            self.__pub < 'off'
+            self.publish_state()
 
     # Method to toggle the current state of the aircon
     def toggle(self):
@@ -89,10 +89,13 @@ class acController:
             self.ac_timer.cancel()
         # Toggle the current state of the AC
         self.aircon.toggle()
-        # Publish the new state using the magic method
-        self.__pub < 'on' if self.state else 'off'
+        self.publish_state()
         # Return the state of the AC after toggling
         return self.state
+
+    def publish_state(self):
+        # Publish the new state using the magic method
+        self.__pub < 'on' if self.state else 'off'
 
     # Magic method to get the current state of the AC module
     __repr__ = state
@@ -118,6 +121,8 @@ ac_Watcher.on_set += ac_con_changed
 if __name__ == "__main__":
     # Example/Test code to run
     from time import sleep
+
+    # View the current state of the AC by subscribing to the publisher's channel
     
     # On the ac
     ac.on()
@@ -133,5 +138,10 @@ if __name__ == "__main__":
 
     # Toggle the current state back to On again
     ac.toggle()
-    # Display the current state of the AC module. Should be 'True' here
+    sleep(3)
+
+    # Off before finishing the program
+    ac.off()
+
+    # Display the final state of the AC module. Should be 'False' here
     print(ac.state)
